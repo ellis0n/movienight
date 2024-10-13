@@ -28,7 +28,8 @@ export const moviesData = [
   { id: 26, title: "Master & Commander", average: 7.688888889, date: new Date("2024-09-17"), meta: {} },
   { id: 27, title: "Godzilla Minus One", average: 8.42, date: new Date("2024-09-24"), meta: {} },
   { id: 28, title: "Twilight", average: 4.728571429, date: new Date("2024-10-01"), meta: {} },
-  { id: 29, title: "Small Soldiers", average: 6.35, date: new Date("2024-10-08"), meta: {} }
+{ id: 29, title: "Small Soldiers", average: 6.35, date: new Date("2024-10-08"), meta: {} },
+  { id: 30, title: "The Matrix", average: 8.5, date: new Date("2024-10-15"), meta: {} },
 ];
 
 
