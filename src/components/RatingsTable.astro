@@ -6,8 +6,6 @@ const movies = await db.select().from(Movies);
 const ratings = await db.select().from(Ratings);
 const viewers = await db.select().from(Viewers);
 
-// loop through movies, find the total number of viewers
-
 const movieList = movies.map((movie) => {
   const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
   const movieViewers = viewers.filter((viewer) =>
@@ -41,15 +39,19 @@ const convertToStars = (average: number) => {
       <tbody>
         {
           movieList.map((movie) => (
-            <tr class="hover:bg-gray-700">
-              <td class="py-2 px-4 border-b border-gray-700">{movie.title}</td>
-              <td class="py-2 px-4 border-b border-gray-700">
-                {convertToStars(movie.average)}
-              </td>
-              <td class="py-2 px-4 border-b border-gray-700">
-                {movie.viewers} watchers
-              </td>
-            </tr>
+            <a href={`/movies/${movie.id}`}>
+              <tr class="hover:bg-gray-700 cursor-pointer">
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {movie.title}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {convertToStars(movie.average)}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {movie.viewers} watchers
+                </td>
+              </tr>
+            </a>
           ))
         }
       </tbody>
