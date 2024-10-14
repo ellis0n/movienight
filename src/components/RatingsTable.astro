@@ -1,0 +1,44 @@
+---
+import { Movies, Ratings, Viewers } from "astro:db";
+import { db } from "astro:db";
+
+const movies = await db.select().from(Movies);
+const ratings = await db.select().from(Ratings);
+const viewers = await db.select().from(Viewers);
+---
+
+<div class="text-white">
+  <h2 class="text-4xl font-bold text-center">The List</h2>
+  {
+    movies.map((movie: any) => (
+      <div class="flex justify-between p-4">
+        <span>{movie.title}</span>
+        <div class="flex justify-center space-x-3">
+          {
+            // find the ratings and associate their viewer
+            ratings
+              .filter((rating: any) => rating.movie_id === movie.id)
+              .map((rating: any) => {
+                const viewer = viewers.find(
+                  (viewer: any) => viewer.id === rating.viewer_id
+                );
+                return (
+                  <div
+                    class="flex items
+                  -center space-x-2"
+                  >
+                    <span>{rating.rating}</span>
+                    {viewer ? (
+                      <span>{viewer.name}</span>
+                    ) : (
+                      <span>Unknown Viewer</span>
+                    )}
+                  </div>
+                );
+              })
+          }
+        </div>
+      </div>
+    ))
+  }
+</div>
