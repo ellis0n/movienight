@@ -6,18 +6,26 @@ const Movies = defineTable({
     title: column.text(),
     average: column.number(),
     date: column.date(),
-    meta: column.json(),
   }
 });
 
 const Ratings = defineTable({
   columns: {
+    id: column.number({ primaryKey: true }),
     movieId: column.number({ references: () => Movies.columns.id }),
-    raterName: column.text(),
-    rating: column.number(),
+    viewerId: column.number({ references: () => Viewers.columns.id }),
+    score: column.number(),
   }
 });
 
+const Viewers = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+})
+
+
 export default defineDb({
-  tables: { Movies, Ratings },
+  tables: { Movies, Ratings, Viewers},
 });

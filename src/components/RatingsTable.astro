@@ -1,0 +1,60 @@
+---
+import { Movies, Ratings, Viewers } from "astro:db";
+import { db } from "astro:db";
+
+const movies = await db.select().from(Movies);
+const ratings = await db.select().from(Ratings);
+const viewers = await db.select().from(Viewers);
+
+const movieList = movies.map((movie) => {
+  const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
+  const movieViewers = viewers.filter((viewer) =>
+    movieRatings.some((rating) => rating.viewerId === viewer.id)
+  );
+  return {
+    ...movie,
+    viewers: movieViewers.length,
+  };
+});
+
+// script to convert average to 5 star rating system
+const convertToStars = (average: number) => {
+  const starRating = Math.round(average / 2);
+  return "⭐".repeat(starRating);
+};
+---
+
+<div class="text-white">
+  <h2 class="text-4xl font-bold text-center mb-4">The List</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-gray-800">
+      <thead>
+        <tr>
+          <th class="py-2 px-4 border-b border-gray-700 text-left">Title</th>
+          <th class="py-2 px-4 border-b border-gray-700 text-left">Consensus</th
+          >
+          <th class="py-2 px-4 border-b border-gray-700 text-left">Watchers</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          movieList.map((movie) => (
+            <a href={`/movies/${movie.id}`}>
+              <tr class="hover:bg-gray-700 cursor-pointer">
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {movie.title}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {convertToStars(movie.average)}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-700">
+                  {movie.viewers} watchers
+                </td>
+              </tr>
+            </a>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

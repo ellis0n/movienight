@@ -1,9 +1,24 @@
 # FUBBS
 ## Movie Night 
 
-- [Main](https://fubbs.vercel.app/)
-- [Preview](https://fubbs-git-preview-ellis0ns-projects.vercel.app)
+- [main branch](https://fubbs.vercel.app/)
+- [preview branch](https://fubbs-git-preview-ellis0ns-projects.vercel.app)
 
-- `pnpm astro run dev` -> seeds local db with values from `db/data.ts`
-- `pnpm astro run dev --remote` -> uses turso db
-- `pnpm astro db push --remote` -> update turso db with a preseeded local db
+movie night repo. runs in astro v.50 (beta), on vercel with remote db on turso. uses astro integration with astrodb and tailwind and probably a front end library???
+
+commands to use after installing:
+
+- `pnpm astro run dev` -> runs the project and seeds local db with values from `db/data.ts`
+  - **this is the current version of the ratings list as of 2024/10/12.**
+- `pnpm astro run dev --remote`
+  - uses a remote [turso db](https://turso.tech/)
+
+to modify the remote db schema (as populated after running `astro run dev`):
+>`pnpm astro db push --remote`
+
+to seed the remote db contents from the dev seed:
+> `pnpm astro db execute db/seed.ts --remote`
+
+`.env` should contain:
+>`ASTRO_DB_REMOTE_URL=[DB_URL]`
+>`ASTRO_DB_APP_TOKEN=[SECRET-STRING]`
