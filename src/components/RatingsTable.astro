@@ -1,10 +1,10 @@
 ---
-import { Movies, Ratings, Viewers } from "astro:db";
+import { MoviesDB, RatingsDB, ViewersDB } from "astro:db";
 import { db } from "astro:db";
 
-const movies = await db.select().from(Movies);
-const ratings = await db.select().from(Ratings);
-const viewers = await db.select().from(Viewers);
+const movies = await db.select().from(MoviesDB);
+const ratings = await db.select().from(RatingsDB);
+const viewers = await db.select().from(ViewersDB);
 
 const movieList = movies.map((movie) => {
   const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
