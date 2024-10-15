@@ -17,7 +17,6 @@ const movieList = movies.map((movie) => {
   };
 });
 
-// script to convert average to 5 star rating system
 const convertToStars = (average: number) => {
   const starRating = Math.round(average / 2);
   return "⭐".repeat(starRating);

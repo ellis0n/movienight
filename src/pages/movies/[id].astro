@@ -11,6 +11,8 @@ export async function getStaticPaths() {
   }));
 }
 const { movie } = Astro.props;
+
+//TODO: Move toString to the config
 ---
 
 <Layout title={movie.title}>
@@ -30,10 +32,12 @@ const { movie } = Astro.props;
             movie.ratings.map((rating) => (
               <tr class="hover:bg-gray-700">
                 <td class="py-2 px-4 border-b border-gray-600">
-                  {rating.viewerName}
+                  <a href={`/viewers/${rating.viewerId}`}>
+                    {rating.viewerName}
+                  </a>
                 </td>
                 <td class="py-2 px-4 border-b border-gray-600">
-                  {rating.rating}
+                  <a href={`/ratings/${rating.id}`}>{rating.rating}</a>
                 </td>
               </tr>
             ))
