@@ -39,39 +39,23 @@ const convertToStars = (average: number) => {
         {
           movieList.map((movie) => (
             <tr class="hover:bg-gray-700 text-lg">
-              <td
-                class="
-                
-              "
-              >
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
                 <a
                   href={`/movies/${movie.id}`}
-                  class="
-                  block
-                  py-2
-                  px-4
-                  border-b
-                  border-gray-700
-                  hover:text-gray-300
-                "
+                  class="block h-full w-full flex items-center"
                 >
-                  <p
-                    class="
-                    font-semibold
-                    hover:text-gray-300
-                    transition-colors
-                    duration-200
-                  "
-                  >
-                    {movie.title}
-                  </p>
+                  {movie.title}
                 </a>
               </td>
-              <td class="py-2 px-4 border-b border-gray-700">
-                {convertToStars(movie.average)}
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
+                <span class="block h-full w-full flex items-center">
+                  {convertToStars(movie.average)}
+                </span>
               </td>
-              <td class="py-2 px-4 border-b border-gray-700">
-                {movie.viewers} watchers
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
+                <span class="block h-full w-full flex items-center">
+                  {movie.viewers}
+                </span>
               </td>
             </tr>
           ))

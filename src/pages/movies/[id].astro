@@ -10,9 +10,8 @@ export async function getStaticPaths() {
     props: { movie: movie.data },
   }));
 }
-const { movie } = Astro.props;
 
-//TODO: Move toString to the config
+const { movie } = Astro.props;
 ---
 
 <Layout title={movie.title}>
@@ -20,24 +19,32 @@ const { movie } = Astro.props;
     <h1 class="text-4xl font-bold mb-4">{movie.title}</h1>
     <p class="text-lg mb-2">Average: {movie.average}</p>
     <div class="overflow-x-auto">
-      <table class="min-w-full bg-gray-800 rounded-lg">
+      <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
         <thead>
           <tr class="bg-gray-700 text-left text-gray-300">
-            <th class="py-2 px-4 border-b border-gray-600">Viewer</th>
-            <th class="py-2 px-4 border-b border-gray-600">Rating</th>
+            <th class="py-2 px-4 border-b border-gray-600 w-1/4">Viewer</th>
+            <th class="py-2 px-4 border-b border-gray-600 w-3/4">Rating</th>
           </tr>
         </thead>
         <tbody>
           {
             movie.ratings.map((rating) => (
               <tr class="hover:bg-gray-700">
-                <td class="py-2 px-4 border-b border-gray-600">
-                  <a href={`/viewers/${rating.viewerId}`}>
+                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                  <a
+                    href={`/viewers/${rating.viewerId}`}
+                    class="block text-sm underline h-full w-full"
+                  >
                     {rating.viewerName}
                   </a>
                 </td>
-                <td class="py-2 px-4 border-b border-gray-600">
-                  <a href={`/ratings/${rating.id}`}>{rating.rating}</a>
+                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                  <a
+                    href={`/viewers/${rating.viewerId}/${rating.id}`}
+                    class="block text-lg font-bold underline h-full w-full"
+                  >
+                    {rating.rating}
+                  </a>
                 </td>
               </tr>
             ))
