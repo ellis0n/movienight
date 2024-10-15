@@ -29,7 +29,6 @@ export const moviesData = [
   { title: "Godzilla Minus One", average: 8.42, date: new Date("2024-09-24")},
   { title: "Twilight", average: 4.728571429, date: new Date("2024-10-01")},
   { title: "Small Soldiers", average: 6.35, date: new Date("2024-10-08")},
-  { title: "The Matrix", average: 8.5, date: new Date("2024-10-15")},
 ];
 export const ratingsData = [
   { movieId: 1, viewerId: 1, score: 6.5},

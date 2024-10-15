@@ -1,22 +1,22 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
 
-const movies = await getCollection("Movies");
+const viewers = await getCollection("Viewers");
 ---
 
-<Layout title="Movies">
+<Layout title="Viewers">
   <div class="container mx-auto p-4 text-white">
-    <h1 class="text-4xl font-bold mb-4">Movies</h1>
+    <h1 class="text-4xl font-bold mb-4">Viewers</h1>
     <ul class="space-y-2">
       {
-        movies.map((movie) => (
+        viewers.map((viewer) => (
           <li class="bg-gray-800 rounded-lg hover:bg-gray-700 transition duration-300">
             <a
-              href={`/movies/${movie.data.id}`}
+              href={`/viewers/${viewer.data.id}`}
               class="block p-4 text-lg font-semibold text-blue-400 hover:text-blue-300"
             >
-              {movie.data.title}
+              {viewer.data.name}
             </a>
           </li>
         ))

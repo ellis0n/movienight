@@ -1,0 +1,56 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export async function getStaticPaths() {
+  const movies = await getCollection("Movies");
+
+  return movies.map((movie) => ({
+    params: { id: movie.id },
+    props: { movie: movie.data },
+  }));
+}
+
+const { movie } = Astro.props;
+---
+
+<Layout title={movie.title}>
+  <div class="container mx-auto p-4 text-white">
+    <h1 class="text-4xl font-bold mb-4">{movie.title}</h1>
+    <p class="text-lg mb-2">Average: {movie.average}</p>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
+        <thead>
+          <tr class="bg-gray-700 text-left text-gray-300">
+            <th class="py-2 px-4 border-b border-gray-600 w-1/4">Viewer</th>
+            <th class="py-2 px-4 border-b border-gray-600 w-3/4">Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            movie.ratings.map((rating) => (
+              <tr class="hover:bg-gray-700">
+                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                  <a
+                    href={`/viewers/${rating.viewerId}`}
+                    class="block text-sm underline h-full w-full"
+                  >
+                    {rating.viewerName}
+                  </a>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                  <a
+                    href={`/viewers/${rating.viewerId}/${rating.id}`}
+                    class="block text-lg font-bold underline h-full w-full"
+                  >
+                    {rating.rating}
+                  </a>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layout>

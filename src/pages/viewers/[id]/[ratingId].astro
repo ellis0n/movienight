@@ -1,0 +1,33 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../../layouts/Layout.astro";
+
+export async function getStaticPaths() {
+  const viewers = await getCollection("Viewers");
+
+  // Generate paths for each rating of each viewer
+  return viewers.flatMap((viewer) => {
+    return viewer.data.ratings.map((rating) => ({
+      params: { id: viewer.id, ratingId: rating.id },
+      props: { viewer: viewer.data, rating },
+    }));
+  });
+}
+
+const { viewer, rating } = Astro.props;
+---
+
+<Layout title={`Rating for ${viewer.name}`}>
+  <div
+    class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg"
+  >
+    <h1 class="text-4xl font-bold mb-4">{viewer.name}</h1>
+    <p class="text-lg mb-6">ID: {viewer.id}</p>
+
+    <h2 class="text-2xl font-semibold mb-4">Rating Details</h2>
+    <div class="p-4 bg-slate-800 rounded-lg">
+      <p class="text-lg"><strong>Movie Title:</strong> {rating.movieTitle}</p>
+      <p class="text-lg"><strong>Score:</strong> {rating.score}</p>
+    </div>
+  </div>
+</Layout>

@@ -1,10 +1,10 @@
 ---
-import { Movies, Ratings, Viewers } from "astro:db";
+import { MoviesDB, RatingsDB, ViewersDB } from "astro:db";
 import { db } from "astro:db";
 
-const movies = await db.select().from(Movies);
-const ratings = await db.select().from(Ratings);
-const viewers = await db.select().from(Viewers);
+const movies = await db.select().from(MoviesDB);
+const ratings = await db.select().from(RatingsDB);
+const viewers = await db.select().from(ViewersDB);
 
 const movieList = movies.map((movie) => {
   const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
@@ -17,7 +17,6 @@ const movieList = movies.map((movie) => {
   };
 });
 
-// script to convert average to 5 star rating system
 const convertToStars = (average: number) => {
   const starRating = Math.round(average / 2);
   return "⭐".repeat(starRating);
@@ -39,19 +38,26 @@ const convertToStars = (average: number) => {
       <tbody>
         {
           movieList.map((movie) => (
-            <a href={`/movies/${movie.id}`}>
-              <tr class="hover:bg-gray-700 cursor-pointer">
-                <td class="py-2 px-4 border-b border-gray-700">
+            <tr class="hover:bg-gray-700 text-lg">
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
+                <a
+                  href={`/movies/${movie.id}`}
+                  class="block h-full w-full flex items-center"
+                >
                   {movie.title}
-                </td>
-                <td class="py-2 px-4 border-b border-gray-700">
+                </a>
+              </td>
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
+                <span class="block h-full w-full flex items-center">
                   {convertToStars(movie.average)}
-                </td>
-                <td class="py-2 px-4 border-b border-gray-700">
-                  {movie.viewers} watchers
-                </td>
-              </tr>
-            </a>
+                </span>
+              </td>
+              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
+                <span class="block h-full w-full flex items-center">
+                  {movie.viewers}
+                </span>
+              </td>
+            </tr>
           ))
         }
       </tbody>

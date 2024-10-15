@@ -1,6 +1,6 @@
 import { column, defineDb, defineTable } from 'astro:db';
 
-const Movies = defineTable({
+const MoviesDB = defineTable({
   columns: {
     id: column.number({ primaryKey: true }),
     title: column.text(),
@@ -9,16 +9,16 @@ const Movies = defineTable({
   }
 });
 
-const Ratings = defineTable({
+const RatingsDB = defineTable({
   columns: {
     id: column.number({ primaryKey: true }),
-    movieId: column.number({ references: () => Movies.columns.id }),
-    viewerId: column.number({ references: () => Viewers.columns.id }),
+    movieId: column.number({ references: () => MoviesDB.columns.id }),
+    viewerId: column.number({ references: () => ViewersDB.columns.id }),
     score: column.number(),
   }
 });
 
-const Viewers = defineTable({
+const ViewersDB = defineTable({
   columns: {
     id: column.number({ primaryKey: true }),
     name: column.text(),
@@ -27,5 +27,5 @@ const Viewers = defineTable({
 
 
 export default defineDb({
-  tables: { Movies, Ratings, Viewers},
+  tables: { MoviesDB, RatingsDB, ViewersDB},
 });
