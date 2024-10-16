@@ -33,7 +33,7 @@ const { id } = Astro.params;
                 {rating.movieTitle}
               </a>
               <a
-                href={`/viewers/${id}/${rating.id}`}
+                href={`/viewers/${id}/ratings/${rating.id}`}
                 class="underline text-sm text-gray-400"
               >
                 Rating: {rating.score}

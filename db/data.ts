@@ -263,20 +263,20 @@ export const ratingsData = [
 ];
 
 export const viewersData = [
-  { name: "Walt" },
-  { name: "Jesse" },
-  { name: "Kieran" },
-  { name: "Nicole" },
-  { name: "Maggie" },
-  { name: "Jonny" },
-  { name: "Mitch" },
-  { name: "Mike" },
-  { name: "Jay" },
-  { name: "Sam" },
-  { name: "Garrett" },
-  { name: "Glen" },
-  { name: "Paddy" },
-  { name: "Colin" },
-  { name: "Kyle" },
-  { name: "Soraya"}
+  { name: "Walt", email: "walt@email.com"},
+  { name: "Jesse", email: "jesse@email.com" },
+  { name: "Kieran", email: "kieran@email.com"},
+  { name: "Nicole", email: "nicole@email.com" },
+  { name: "Maggie", email: "maggie@email.com"},
+  { name: "Jonny", email: "jonny@email.com"},
+  { name: "Mitch", email: "mitch@email.com"},
+  { name: "Mike", email: "mike@email.com"},
+  { name: "Jay", email: "jay@email.com"},
+  { name: "Sam", email: "sam@email.com" },
+  { name: "Garrett", email: "garet@email.com"},
+  { name: "Glen", email: "iwasaskywalker@gmail.com"},
+  { name: "Paddy", email: "paddy@email.com"},
+  { name: "Colin", email: "colin@email.com" },
+  { name: "Kyle", email: "kyle@email.com" },
+  { name: "Soraya", email: "soraya@email.com"}
 ];

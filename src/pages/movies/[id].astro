@@ -42,7 +42,7 @@ const { movie } = Astro.props;
                 </td>
                 <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
                   <a
-                    href={`/viewers/${rating.viewerId}/${rating.id}`}
+                    href={`/viewers/${rating.viewerId}/ratings/${rating.id}`}
                     class="block text-lg font-bold underline h-full w-full"
                   >
                     {rating.rating}

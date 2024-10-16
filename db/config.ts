@@ -22,6 +22,7 @@ const ViewersDB = defineTable({
   columns: {
     id: column.number({ primaryKey: true }),
     name: column.text(),
+    email: column.text(),
   }
 })
 

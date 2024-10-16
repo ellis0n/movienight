@@ -1,19 +1,8 @@
 ---
+export const prerender = false;
+
 import Layout from "../layouts/Layout.astro";
 import RatingsTable from "../components/RatingsTable.astro";
-
-const isProd = import.meta.env.PROD;
-const isDev = import.meta.env.DEV;
-const isSSR = import.meta.env.SSR;
-const envVar = import.meta.env.ASTRO_DB_REMOTE_URL;
-
-console.log({
-  isProd,
-  isDev,
-  isSSR,
-  envVar,
-});
-export const prerender = false;
 ---
 
 <Layout title="">
