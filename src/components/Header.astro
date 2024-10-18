@@ -1,5 +1,10 @@
 ---
-
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/astro/components";
 ---
 
 <header class="bg-slate-800 text-white">
@@ -21,6 +26,12 @@
           <a href="/viewers" class="hover:text-gray-300">viewers</a>
         </li>
       </ul>
+      <SignedOut>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
     </div>
   </nav>
 </header>

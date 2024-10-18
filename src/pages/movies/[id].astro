@@ -2,22 +2,16 @@
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 
-export async function getStaticPaths() {
-  const movies = await getCollection("Movies");
+const movies = await getCollection("Movies");
+const movie = movies.find((m) => m.id === Astro.params.id);
 
-  return movies.map((movie) => ({
-    params: { id: movie.id },
-    props: { movie: movie.data },
-  }));
-}
-
-const { movie } = Astro.props;
+if (!movie) return Astro.redirect("/404");
 ---
 
-<Layout title={movie.title}>
+<Layout title={movie.data.title}>
   <div class="container mx-auto p-4 text-white">
-    <h1 class="text-4xl font-bold mb-4">{movie.title}</h1>
-    <p class="text-lg mb-2">Average: {movie.average}</p>
+    <h1 class="text-4xl font-bold mb-4">{movie.data.title}</h1>
+    <p class="text-lg mb-2">Average: {movie.data.average}</p>
     <div class="overflow-x-auto">
       <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
         <thead>
@@ -28,7 +22,7 @@ const { movie } = Astro.props;
         </thead>
         <tbody>
           {
-            movie.ratings.map((rating) => (
+            movie.data.ratings.map((rating) => (
               <tr class="hover:bg-gray-700">
                 <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
                   <a
@@ -40,7 +34,7 @@ const { movie } = Astro.props;
                 </td>
                 <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
                   <a
-                    href={`/viewers/${rating.viewerId}/${rating.id}`}
+                    href={`/viewers/${rating.viewerId}/ratings/${rating.id}`}
                     class="block text-lg font-bold underline h-full w-full"
                   >
                     {rating.rating}

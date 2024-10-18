@@ -19,6 +19,9 @@ const viewers = await getCollection("Viewers");
               {viewer.data.name}
             </a>
           </li>
+          <li>
+            {viewer.data.email}
+          </li>
         ))
       }
     </ul>

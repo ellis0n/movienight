@@ -1,0 +1,30 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@layouts/Layout.astro";
+import UpdateRating from "@components/UpdateRating.astro";
+const auth = Astro.locals.auth();
+
+const viewers = await getCollection("Viewers");
+
+const viewer = viewers.find((v) => v.id === Astro.params.id);
+const rating = viewer?.data.ratings.find(
+  (r) => r.id === Number(Astro.params.ratingId)
+);
+console.log(typeof rating);
+
+if (!viewer || !rating) return Astro.redirect("/404");
+
+const isViewer = auth && auth.userId === viewer.data.clerkId;
+---
+
+<Layout title={`Rating for ${viewer.data.name}`}>
+  <div
+    class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg gap-4"
+  >
+    <h1 class="text-4xl font-bold mb-4">{viewer.data.name}</h1>
+    <h2>
+      {rating.movieTitle}
+    </h2>
+    {isViewer ? <UpdateRating rating={rating} /> : <p>{rating.score}</p>}
+  </div>
+</Layout>
