@@ -263,20 +263,20 @@ export const ratingsData = [
 ];
 
 export const viewersData = [
-  { name: "Walt", email: "walt@email.com"},
-  { name: "Jesse", email: "jesse@email.com" },
-  { name: "Kieran", email: "kieran@email.com"},
-  { name: "Nicole", email: "nicole@email.com" },
-  { name: "Maggie", email: "maggie@email.com"},
-  { name: "Jonny", email: "jonny@email.com"},
-  { name: "Mitch", email: "mitch@email.com"},
-  { name: "Mike", email: "mike@email.com"},
-  { name: "Jay", email: "jay@email.com"},
-  { name: "Sam", email: "sam@email.com" },
-  { name: "Garrett", email: "garet@email.com"},
-  { name: "Glen", email: "iwasaskywalker@gmail.com"},
-  { name: "Paddy", email: "paddy@email.com"},
-  { name: "Colin", email: "colin@email.com" },
-  { name: "Kyle", email: "kyle@email.com" },
-  { name: "Soraya", email: "soraya@email.com"}
+  { name: "Walt", clerkId: "walt@clerkId.com"},
+  { name: "Jesse", clerkId: "jesse@clerkId.com" },
+  { name: "Kieran", clerkId: "kieran@clerkId.com"},
+  { name: "Nicole", clerkId: "nicole@clerkId.com" },
+  { name: "Maggie", clerkId: "maggie@clerkId.com"},
+  { name: "Jonny", clerkId: "jonny@clerkId.com"},
+  { name: "Mitch", clerkId: "mitch@clerkId.com"},
+  { name: "Mike", clerkId: "mike@clerkId.com"},
+  { name: "Jay", clerkId: "jay@clerkId.com"},
+  { name: "Sam", clerkId: "sam@clerkId.com" },
+  { name: "Garrett", clerkId: "garet@clerkId.com"},
+  { name: "Glen", clerkId: "user_2nXSWm5M7UciAriKqOfUnwRiI2q"},
+  { name: "Paddy", clerkId: "paddy@clerkId.com"},
+  { name: "Colin", clerkId: "colin@clerkId.com" },
+  { name: "Kyle", clerkId: "kyle@clerkId.com" },
+  { name: "Soraya", clerkId: "soraya@clerkId.com"}
 ];

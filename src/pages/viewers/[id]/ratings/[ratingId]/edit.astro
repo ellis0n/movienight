@@ -1,55 +1,92 @@
 ---
-export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
-export async function getStaticPaths() {
-  const viewers = await getCollection("Viewers");
+// @ts-ignore
+import { actions } from "astro:actions";
 
-  return viewers.flatMap((viewer) => {
-    return viewer.data.ratings.map((rating) => ({
-      params: { id: viewer.id, ratingId: rating.id.toString() },
-      props: { viewer: viewer.data, rating },
-    }));
-  });
-}
+const ratings = await getCollection("Ratings");
+const movies = await getCollection("Movies");
 
-const { viewer, rating } = Astro.props;
+const rating = ratings.find(
+  (rating: { id: string | undefined }) => rating.id === Astro.params.ratingId
+)?.data;
+
+const movie = rating
+  ? movies.find((movie: { id: any }) => movie.id === rating.movieId.toString())
+      ?.data
+  : null;
+
+if (!ratings) return Astro.redirect("/404");
+
+const result = Astro.getActionResult(actions.ratings.updateScore);
 ---
 
 <Layout title="Edit Rating">
   <div class="container mx-auto p-4 text-white">
     <h1 class="text-4xl font-bold mb-4">Edit Rating</h1>
-    <p class="text-lg mb-6">Movie Title: {rating.movieTitle}</p>
-    <p class="text-lg mb-6">Score: {rating.score}</p>
-    <a
-      href={`/viewers/${viewer.id}/ratings/${rating.id}/delete`}
-      class="underline text-red-400 hover:text-red-300"
-    >
-      <p class="text-lg">Delete rating</p>
-    </a>
-    <form class="mt-6 space-y-4">
-      <div>
-        <label for="rating" class="block text-sm font-medium text-gray-300"
-          >Rating</label
-        >
-        <input
-          type="number"
-          name="rating"
-          id="rating"
-          min="1"
-          max="10"
-          step="0.1"
-          value={rating.score}
-          class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        />
-      </div>
-      <button
-        type="submit"
-        class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        Save
-      </button>
-    </form>
+    {
+      rating && movie ? (
+        <>
+          <p class="text-lg mb-6">Movie Title: {movie.title}</p>
+          <p class="text-lg mb-6">Score: {rating.rating}</p>
+          {result ? (
+            <p class="text-lg mt-6 text-green-500">{result.data?.message}</p>
+          ) : null}
+          <form
+            class="mt-6 space-y-4"
+            method="POST"
+            action={
+              // `${Astro.params.id}/viewers/${Astro.params.ratingId}` +
+              actions.ratings.updateScore
+            }
+          >
+            <label for="score" class="block text-sm font-medium text-gray-300">
+              Score
+            </label>
+            <input type="hidden" name="id" value={rating.id} />
+            <input
+              type="number"
+              name="score"
+              id="score"
+              min="1"
+              max="10"
+              step="0.1"
+              value={rating.rating}
+              class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md
+          shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500
+          sm:text-sm"
+            />
+            <button
+              type="submit"
+              class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Save
+            </button>
+          </form>
+
+          {result && result.error ? (
+            <p class="text-lg mt-6 text-red-500">{result.error}</p>
+          ) : null}
+        </>
+      ) : (
+        <p class="text-lg mb-6">Rating not found.</p>
+      )
+    }
   </div>
 </Layout>
+
+<script>
+  import { actions } from "astro:actions";
+  import { navigate } from "astro:transitions/client";
+
+  const form = document.querySelector("form");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const { error } = await actions.ratings.updateScore(formData);
+    if (!error) {
+      navigate("/viewers");
+    }
+  });
+</script>

@@ -1,41 +1,30 @@
 ---
-export const prerender = true;
-
 import { getCollection } from "astro:content";
 import Layout from "@layouts/Layout.astro";
+import UpdateRating from "@components/UpdateRating.astro";
+const auth = Astro.locals.auth();
 
-export async function getStaticPaths() {
-  const viewers = await getCollection("Viewers");
+const viewers = await getCollection("Viewers");
 
-  // Generate paths for each rating of each viewer
-  return viewers.flatMap((viewer) => {
-    return viewer.data.ratings.map((rating) => ({
-      params: { id: viewer.id, ratingId: rating.id },
-      props: { viewer: viewer.data, rating },
-    }));
-  });
-}
+const viewer = viewers.find((v) => v.id === Astro.params.id);
+const rating = viewer?.data.ratings.find(
+  (r) => r.id === Number(Astro.params.ratingId)
+);
+console.log(typeof rating);
 
-const { viewer, rating } = Astro.props;
+if (!viewer || !rating) return Astro.redirect("/404");
+
+const isViewer = auth && auth.userId === viewer.data.clerkId;
 ---
 
-<Layout title={`Rating for ${viewer.name}`}>
+<Layout title={`Rating for ${viewer.data.name}`}>
   <div
-    class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg"
+    class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg gap-4"
   >
-    <h1 class="text-4xl font-bold mb-4">{viewer.name}</h1>
-    <p class="text-lg mb-6">ID: {viewer.id}</p>
-
-    <h2 class="text-2xl font-semibold mb-4">Rating Details</h2>
-    <a
-      href={`/viewers/${viewer.id}/ratings/${rating.id}/edit`}
-      class="underline text-blue-400 hover:text-blue-300"
-    >
-      <p class="text-lg">Edit rating</p>
-    </a>
-    <div class="p-4 bg-slate-800 rounded-lg">
-      <p class="text-lg"><strong>Movie Title:</strong> {rating.movieTitle}</p>
-      <p class="text-lg"><strong>Score:</strong> {rating.score}</p>
-    </div>
+    <h1 class="text-4xl font-bold mb-4">{viewer.data.name}</h1>
+    <h2>
+      {rating.movieTitle}
+    </h2>
+    {isViewer ? <UpdateRating rating={rating} /> : <p>{rating.score}</p>}
   </div>
 </Layout>

@@ -1,27 +1,35 @@
 ---
-export const prerender = true;
-
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 
-export async function getStaticPaths() {
-  const viewers = await getCollection("Viewers");
+const auth = Astro.locals.auth();
 
-  return viewers.map((viewer) => ({
-    params: { id: viewer.id },
-    props: { viewer: viewer.data },
-  }));
-}
-const { viewer } = Astro.props;
-const { id } = Astro.params;
+const viewers = await getCollection("Viewers");
+const availableRoute = viewers.find((v) => v.id === Astro.params.id);
+
+if (!availableRoute) return Astro.redirect("/404");
+
+const viewer = availableRoute.data;
+
+const isViewer = auth && auth.userId === viewer.clerkId;
 ---
 
 <Layout title={viewer.name}>
   <div
     class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg"
   >
-    <h1 class="text-4xl font-bold mb-4">{viewer.name}</h1>
-    <p class="text-lg mb-6">ID: {viewer.id}</p>
+    <h1 class="text-4xl font-bold mb-4">
+      {isViewer && <span class="text-green-500">👁️</span>}
+      {viewer.name}
+    </h1>
+
+    {
+      isViewer && (
+        <a href={`/viewers/${viewer.id}/edit`} class="text-blue-500 underline">
+          Edit Profile
+        </a>
+      )
+    }
 
     <h2 class="text-2xl font-semibold mb-4">Movies Watched</h2>
     <ul class="list-disc list-inside space-y-4">
@@ -33,7 +41,7 @@ const { id } = Astro.params;
                 {rating.movieTitle}
               </a>
               <a
-                href={`/viewers/${id}/ratings/${rating.id}`}
+                href={`/viewers/${viewer.id}/ratings/${rating.id}`}
                 class="underline text-sm text-gray-400"
               >
                 Rating: {rating.score}

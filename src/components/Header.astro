@@ -26,12 +26,12 @@ import {
           <a href="/viewers" class="hover:text-gray-300">viewers</a>
         </li>
       </ul>
+      <SignedOut>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
     </div>
-    <SignedOut>
-      <SignInButton mode="modal" />
-    </SignedOut>
-    <SignedIn>
-      <UserButton />
-    </SignedIn>
   </nav>
 </header>
