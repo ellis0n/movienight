@@ -23,13 +23,13 @@ const isViewer = auth && auth.userId === viewer.clerkId;
       {viewer.name}
     </h1>
 
-    {
+    <!-- {
       isViewer && (
         <a href={`/viewers/${viewer.id}/edit`} class="text-blue-500 underline">
           Edit Profile
         </a>
       )
-    }
+    } -->
 
     <h2 class="text-2xl font-semibold mb-4">Movies Watched</h2>
     <ul class="list-disc list-inside space-y-4">
