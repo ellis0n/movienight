@@ -11,7 +11,7 @@ const movieContent = movieEntry ? movieEntry.data : null;
 
 const movie = await Astro.callAction(actions.movies.getMovieWithRatings, {
   movieId: Astro.params.id as string,
-  sort: "TOTAL_RATINGS_DESC",
+  sort: "RATING_SCORE_DESC",
 });
 
 // Calculate average rating and truncate to 2 decimal places

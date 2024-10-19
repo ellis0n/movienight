@@ -1,6 +1,10 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
-import { db, eq, MoviesDB, RatingsDB, ViewersDB } from 'astro:db';
+import { asc, db, desc, eq, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
+
+interface Row {
+    [key: string]: any;
+}
 
 export const movies = {
     getMovieById: defineAction({
@@ -41,7 +45,14 @@ export const movies = {
                             .select()
                             .from(RatingsDB)
                             .where(eq(RatingsDB.movieId, Number(movie.id)))
+                            .orderBy(
+                                desc(RatingsDB.score)
+                            )
                             .run();
+                        
+                        if (sort === 'RATING_SCORE_DESC') {
+                        }
+
                         return { ...movie, ratings: ratings.rows };
                     })
                 );
@@ -62,10 +73,13 @@ export const movies = {
                 );
 
 
-                // sort by total ratings descending
-                if (sort == 'TOTAL_RATINGS_DESC') {
-                    movieWithRatings.sort((a, b) => b.ratings.length - a.ratings.length);
-                }
+                // sort by rating score descending
+                // if (sort == 'RATING_SCORE_DESC') {
+                //      movieWithRatings = movieWithRatings.map((movie) => {
+                //         movie.ratings.sort((a: { score: number; }, b: { score: number; }) => b.score - a.score);
+                //     return movie;
+                // });
+                // }
                 return movieWithRatings;
             } catch (error) {
                 console.error('Error fetching ratings:', error);

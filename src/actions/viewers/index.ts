@@ -26,28 +26,35 @@ export const viewers = {
         }),
         handler: async ({sort}) => {
             try {
-                const getAllViewers = await db
-                    .select()
+
+                let viewersQuery = db
+                    .select({
+                        viewerId: ViewersDB.id,
+                        viewerName: ViewersDB.name,
+                        ratingCount: sql`COUNT(${RatingsDB.id})`,
+                    })
                     .from(ViewersDB)
-                    .run();
-                const { rows } = getAllViewers;
-                const viewersWithRatings = await Promise.all(
-                    rows.map(async (viewer) => {
+                    .leftJoin(RatingsDB, eq(ViewersDB.id, RatingsDB.viewerId))
+                .groupBy(ViewersDB.id)
+                .orderBy(sort === 'TOTAL_RATINGS_DESC' ? sql`COUNT(${RatingsDB.id}) DESC` : sql`COUNT(${RatingsDB.id}) ASC`);
+
+
+                const {
+                    rows: viewersWithRatings
+                } = await viewersQuery.run();
+
+                 // Fetch ratings for each viewer
+                await Promise.all(
+                    viewersWithRatings.map(async (viewer) => {
                         const ratings = await db
                             .select()
                             .from(RatingsDB)
-                            .where(eq(RatingsDB.viewerId, Number(viewer.id)))
+                            .where(eq(RatingsDB.viewerId, Number(viewer.viewerId)))
                             .run();
-                        return { ...viewer, ratings: ratings.rows };
                     })
+                    
                 );
-                // sort by total ratings descending
-                // TODO: enum?
-                if (sort === 'TOTAL_RATINGS_DESC') {
-                    viewersWithRatings.sort((a, b) => b.ratings.length - a.ratings.length);
-                }
                 return viewersWithRatings;
-
                 
             } catch (error) {
                 console.error('Error fetching viewers:', error);
