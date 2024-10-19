@@ -19,7 +19,6 @@ const RatingsDB = defineTable({
 });
 
 const ViewersDB = defineTable({
-  deprecated: true,
   columns: {
     id: column.number({ primaryKey: true }),
     name: column.text(),
