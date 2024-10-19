@@ -1,10 +1,20 @@
 ---
+import { actions } from "astro:actions";
+
 import {
   SignedIn,
   SignedOut,
   UserButton,
   SignInButton,
 } from "@clerk/astro/components";
+
+const auth = Astro.locals.auth();
+
+const viewer = await Astro.callAction(actions.viewers.getViewerByClerkId, {
+  clerkId: auth.userId ?? "",
+});
+
+const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
 ---
 
 <header class="bg-slate-800 text-white">
@@ -31,6 +41,13 @@ import {
       </SignedOut>
       <SignedIn>
         <UserButton />
+        {
+          viewer && (
+            <a href={`/viewers/${viewer.data?.id}`} class="text-white">
+              {viewer.data?.name}'s Profile
+            </a>
+          )
+        }
       </SignedIn>
     </div>
   </nav>

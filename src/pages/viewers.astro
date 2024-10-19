@@ -1,8 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getCollection } from "astro:content";
+import { actions } from "astro:actions";
 
-const viewers = await getCollection("Viewers");
+const auth = Astro.locals.auth();
+const viewersResult = await Astro.callAction(
+  actions.viewers.getAllViewersWithRatings,
+  { sort: "TOTAL_RATINGS_DESC" }
+);
+const viewers = viewersResult.data;
 ---
 
 <Layout title="Viewers">
@@ -10,16 +15,32 @@ const viewers = await getCollection("Viewers");
     <h1 class="text-4xl font-bold mb-4">Viewers</h1>
     <ul class="space-y-2">
       {
-        viewers.map((viewer) => (
-          <li class="bg-gray-800 rounded-lg hover:bg-gray-700 transition duration-300">
-            <a
-              href={`/viewers/${viewer.data.id}`}
-              class="block p-4 text-lg font-semibold text-blue-400 hover:text-blue-300"
-            >
-              {viewer.data.name}
-            </a>
-          </li>
-        ))
+        viewers &&
+          viewers.map((viewer) => (
+            <li class="bg-gray-800 rounded-lg hover:bg-gray-700 transition duration-300">
+              <a
+                href={
+                  //  @ts-expect-error
+                  `/viewers/${viewer.id}`
+                }
+                class="block p-4 text-lg font-semibold text-blue-400 hover:text-blue-300"
+              >
+                <p>
+                  {
+                    //  @ts-expect-error
+                    viewer.name
+                  }
+                  {
+                    //  @ts-expect-error
+                    viewer.clerkId === auth.userId && <span> (you)</span>
+                  }
+                  {viewer.ratings.length > 0
+                    ? ` (${viewer.ratings.length} ratings)`
+                    : ""}
+                </p>
+              </a>
+            </li>
+          ))
       }
     </ul>
   </div>
