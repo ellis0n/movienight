@@ -1,50 +1,77 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import { actions } from "astro:actions";
 
-const movies = await getCollection("Movies");
-const movie = movies.find((m) => m.id === Astro.params.id);
+const moviesCollection = await getCollection("Movies");
+const viewersCollection = await getCollection("Viewers");
+const movieEntry = moviesCollection.find((m) => m.id === Astro.params.id);
+if (!movieEntry) return Astro.redirect("/404");
+const movieContent = movieEntry ? movieEntry.data : null;
 
-if (!movie) return Astro.redirect("/404");
+const movie = await Astro.callAction(actions.movies.getMovieWithRatings, {
+  movieId: Astro.params.id as string,
+  sort: "TOTAL_RATINGS_DESC",
+});
+
+// Calculate average rating and truncate to 2 decimal places
+const calculateAverage = (ratings: any[]) => {
+  if (!ratings || ratings.length === 0) return 0;
+  const total = ratings.reduce(
+    (acc: any, rating: { score: any }) => acc + rating.score,
+    0
+  );
+  const average = total / ratings.length;
+  return Math.floor(average * 100) / 100; // Truncate to 2 decimal places
+};
+
+// get the ratings and add the viewerName to each rating. ratings is an array of objects with viewerId, id, and score
+const ratings = movie.data ? movie.data[0].ratings : [];
+console.log(ratings);
 ---
 
-<Layout title={movie.data.title}>
-  <div class="container mx-auto p-4 text-white">
-    <h1 class="text-4xl font-bold mb-4">{movie.data.title}</h1>
-    <p class="text-lg mb-2">Average: {movie.data.average}</p>
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
-        <thead>
-          <tr class="bg-gray-700 text-left text-gray-300">
-            <th class="py-2 px-4 border-b border-gray-600 w-1/4">Viewer</th>
-            <th class="py-2 px-4 border-b border-gray-600 w-3/4">Rating</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            movie.data.ratings.map((rating) => (
-              <tr class="hover:bg-gray-700">
-                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
-                  <a
-                    href={`/viewers/${rating.viewerId}`}
-                    class="block text-sm underline h-full w-full"
-                  >
-                    {rating.viewerName}
-                  </a>
-                </td>
-                <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
-                  <a
-                    href={`/viewers/${rating.viewerId}/ratings/${rating.id}`}
-                    class="block text-lg font-bold underline h-full w-full"
-                  >
-                    {rating.rating}
-                  </a>
-                </td>
+{
+  movieContent && (
+    <Layout title={movieContent.title}>
+      <div class="container mx-auto p-4 text-white">
+        <h1 class="text-4xl font-bold mb-4">{movieContent.title}</h1>
+        {movie.data && (
+          <p class="text-lg mb-2">Average: {calculateAverage(ratings)}</p>
+        )}
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
+            <thead>
+              <tr class="bg-gray-700 text-left text-gray-300">
+                <th class="py-2 px-4 border-b border-gray-600 w-1/4">Viewer</th>
+                <th class="py-2 px-4 border-b border-gray-600 w-3/4">Rating</th>
               </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
-</Layout>
+            </thead>
+            <tbody>
+              {ratings &&
+                ratings.map((rating) => (
+                  <tr class="hover:bg-gray-700">
+                    <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                      <a
+                        href={`/viewers/${rating.viewerId}`}
+                        class="block text-sm underline h-full w-full"
+                      >
+                        {rating.viewerName}
+                      </a>
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
+                      <a
+                        href={`/viewers/${rating.viewerId}/ratings/${rating.id}`}
+                        class="block text-lg font-bold underline h-full w-full"
+                      >
+                        {rating.score}
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Layout>
+  )
+}

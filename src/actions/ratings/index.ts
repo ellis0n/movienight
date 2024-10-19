@@ -4,6 +4,45 @@ import { db, eq, RatingsDB } from 'astro:db';
 
 export const ratings = {
 
+    getAllRatingsForViewer: defineAction({
+        input: z.object({
+        viewerId: z.string(),
+        }),
+        handler: async ({ viewerId }) => {
+        try {
+            const getAllRatings = await db
+            .select()
+            .from(RatingsDB)
+            .where(eq(RatingsDB.viewerId, Number(viewerId)))
+            .run();
+            const { rows } = getAllRatings;
+            return {rows, count: rows.length};
+        } catch (error) {
+            console.error('Error fetching ratings:', error);
+        }
+        },
+    }),
+
+    getAllRatingsForMovie: defineAction({
+        input: z.object({
+        movieId: z.string(),
+        }),
+        handler: async ({ movieId }) => {
+        try {
+            const getAllRatings = await db
+            .select()
+            .from(RatingsDB)
+            .where(eq(RatingsDB.movieId, Number(movieId)))
+            .run();
+            const { rows } = getAllRatings;
+            return {rows, count: rows.length};
+        } catch (error) {
+            console.error('Error fetching ratings:', error);
+        }
+        },
+    }),
+
+
     getRatingById: defineAction({
         input: z.object({
         ratingId: z.string(),
