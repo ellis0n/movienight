@@ -263,20 +263,20 @@ export const ratingsData = [
 ];
 
 export const viewersData = [
-  { name: "Walt" },
-  { name: "Jesse" },
-  { name: "Kieran" },
-  { name: "Nicole" },
-  { name: "Maggie" },
-  { name: "Jonny" },
-  { name: "Mitch" },
-  { name: "Mike" },
-  { name: "Jay" },
-  { name: "Sam" },
-  { name: "Garrett" },
-  { name: "Glen" },
-  { name: "Paddy" },
-  { name: "Colin" },
-  { name: "Kyle" },
-  { name: "Soraya"}
+  { name: "Walt", clerkId: "walt@clerkId.com"},
+  { name: "Jesse", clerkId: "jesse@clerkId.com" },
+  { name: "Kieran", clerkId: "kieran@clerkId.com"},
+  { name: "Nicole", clerkId: "nicole@clerkId.com" },
+  { name: "Maggie", clerkId: "maggie@clerkId.com"},
+  { name: "Jonny", clerkId: "jonny@clerkId.com"},
+  { name: "Mitch", clerkId: "mitch@clerkId.com"},
+  { name: "Mike", clerkId: "mike@clerkId.com"},
+  { name: "Jay", clerkId: "jay@clerkId.com"},
+  { name: "Sam", clerkId: "sam@clerkId.com" },
+  { name: "Garrett", clerkId: "garet@clerkId.com"},
+  { name: "Glen", clerkId: "user_2nXSWm5M7UciAriKqOfUnwRiI2q"},
+  { name: "Paddy", clerkId: "paddy@clerkId.com"},
+  { name: "Colin", clerkId: "colin@clerkId.com" },
+  { name: "Kyle", clerkId: "kyle@clerkId.com" },
+  { name: "Soraya", clerkId: "soraya@clerkId.com"}
 ];

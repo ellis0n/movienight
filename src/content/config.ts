@@ -118,6 +118,7 @@ const Viewers = defineCollection({
   schema: z.object({
     id: z.string(),
     name: z.string(),
+    clerkId: z.string(),
     ratings: z.array(z.object({
       id: z.number(),
       movieId: z.number(),
