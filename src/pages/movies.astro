@@ -2,6 +2,8 @@
 import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import { actions } from "astro:actions";
+import { Image } from "astro:assets";
+import placeholder from "../assets/placeholdermovie.png";
 
 //TODO: We should be populating a getCollection with the OMDB data on adding movie,
 // much of this logic should be moved to an initialization call on backend
@@ -54,10 +56,13 @@ if (omdbError) {
           moviesWithOmdb.map((movie) => (
             <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
               <a href={`/movies/${movie.movieId}`} class="block">
-                <img
-                  src={movie.Poster || "src/assets/placeholdermovie.png"}
+                <Image
+                  src={movie.Poster || placeholder}
                   alt={movie.Title || movie.title}
+                  height={288}
+                  width={192}
                   class="w-full h-64 object-cover"
+                  transition:name={movie.Poster || null}
                 />
                 <div class="p-4">
                   <h2 class="text-lg font-semibold mb-2 text-blue-200 hover:text-blue-400 transition-colors duration-300">

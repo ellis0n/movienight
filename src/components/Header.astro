@@ -1,54 +1,44 @@
 ---
-import { actions } from "astro:actions";
 
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  SignInButton,
-} from "@clerk/astro/components";
-
-const auth = Astro.locals.auth();
-
-const viewer = await Astro.callAction(actions.viewers.getViewerByClerkId, {
-  clerkId: auth.userId ?? "",
-});
-
-const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
 ---
 
-<header class="bg-slate-800 text-white">
-  <div class="mx-auto p-4">
-    <a href="/">
-      <h1 class="text-8xl font-black text-center">movie night</h1>
+<header
+  class="bg-slate-800 text-white fixed z-30 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+>
+  <div class="mx-auto flex items-center justify-start p-4">
+    <button
+      class="p-2
+      text-gray-600
+      rounded
+      cursor-pointer
+      lg:hidden
+      hover:text-gray-900
+      hover:bg-gray-100
+      focus:bg-gray-100
+      dark:focus:bg-gray-700
+      focus:ring-2
+      focus:ring-gray-100
+      dark:focus:ring-gray-700
+      dark:text-gray-400
+      dark:hover:bg-gray-700
+      dark:hover:text-white"
+      id="toggleSidebarMobile"
+    >
+      <!-- button emoji -->
+      🔘
+    </button>
+    <a
+      href="/"
+      class="flex flex-row
+      items-center
+      space-x-2
+      text-white
+      dark:text-gray-200
+      text-3xl
+      font-black"
+    >
+      <span>🎥</span>
+      <h1>movie night</h1>
     </a>
   </div>
-  <nav class="bg-slate-700">
-    <div class="container mx-auto p-4">
-      <ul class="flex justify-center space-x-8 text-2xl">
-        <li>
-          <a href="/movies" class="hover:text-gray-300">movies</a>
-        </li>
-        <li>
-          <a href="/thelist" class="hover:text-gray-300">the list</a>
-        </li>
-        <li>
-          <a href="/viewers" class="hover:text-gray-300">viewers</a>
-        </li>
-      </ul>
-      <SignedOut>
-        <SignInButton mode="modal" />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-        {
-          viewer && (
-            <a href={`/viewers/${viewer.data?.id}`} class="text-white">
-              {viewer.data?.name}'s Profile
-            </a>
-          )
-        }
-      </SignedIn>
-    </div>
-  </nav>
 </header>
