@@ -23,4 +23,29 @@ export const omdb = {
             }
         },
     }),
+
+    getManyOMDBFilms: defineAction({
+        input: z.object({
+            movieQueryParams: z.array(z.object({
+                title: z.string(),
+                movieId: z.string(),
+            })),
+            apiKey: z.string(),
+        }),
+        handler: async ({ 
+            movieQueryParams,
+            apiKey
+         }) => {
+            try {
+                const films = await Promise.all(movieQueryParams.map(async ({ title, movieId }) => {
+                    const response = await fetch(`${OMDB_URL}${apiKey}&t=${encodeURIComponent(title)}`);
+                    const film = await response.json();
+                    return { ...film, movieId, title };
+                }));
+                return films;
+            } catch (error) {
+                console.error('Error fetching films:', error);
+            }
+        },
+    }),
 }

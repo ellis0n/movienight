@@ -11,12 +11,11 @@ const getViewer = await Astro.callAction(
     sort: "RATING_SCORE_DESC",
   }
 );
+const { data: viewerObj, error } = getViewer;
 
-if (getViewer.error) {
+if (error) {
   return Astro.redirect("/404");
 }
-
-const { data: viewerObj } = getViewer;
 
 const { id, name, clerkId, ratings, movies } = viewerObj || {
   id: "",
@@ -50,13 +49,13 @@ const isViewer = auth && clerkId && auth.userId === clerkId;
       {name}
     </h1>
 
-    {
+    <!-- {
       isViewer && (
         <a href={`/viewers/${id}/edit`} class="text-blue-500 underline">
           Edit Profile
         </a>
       )
-    }
+    } -->
 
     <h2 class="text-2xl font-semibold mb-4">Ratings:</h2>
     <div class="overflow-x-auto">

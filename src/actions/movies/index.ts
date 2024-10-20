@@ -7,6 +7,28 @@ interface Row {
 }
 
 export const movies = {
+
+    getAllMovies: defineAction({
+        input: z.object({
+            sort: z.string().optional(),
+        }),
+        handler: async ({ sort }) => {
+            try {
+                const getMovies = await db
+                    .select()
+                    .from(MoviesDB)
+                    .orderBy(
+                        sort === 'TITLE_ASC' ? asc(MoviesDB.title) : desc(MoviesDB.title)
+                    )
+                    .run();
+                const { rows } = getMovies;
+                return rows;
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+            }
+        }
+    }),
+
     getMovieById: defineAction({
         input: z.object({
             movieId: z.string(),
