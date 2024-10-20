@@ -1,0 +1,47 @@
+---
+import { actions } from "astro:actions";
+
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/astro/components";
+
+const auth = Astro.locals.auth();
+
+const viewer = await Astro.callAction(actions.viewers.getViewerByClerkId, {
+  clerkId: auth.userId ?? "",
+});
+
+const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
+---
+
+<nav class="bg-slate-700">
+  <div class="container mx-auto p-4">
+    <ul class="flex justify-center space-x-8 text-2xl">
+      <li>
+        <a href="/movies" class="hover:text-gray-300">movies</a>
+      </li>
+      <li>
+        <a href="/thelist" class="hover:text-gray-300">the list</a>
+      </li>
+      <li>
+        <a href="/viewers" class="hover:text-gray-300">viewers</a>
+      </li>
+    </ul>
+    <SignedOut>
+      <SignInButton mode="modal" />
+    </SignedOut>
+    <SignedIn>
+      <UserButton />
+      {
+        viewer && (
+          <a href={`/viewers/${viewer.data?.id}`} class="text-white">
+            {viewer.data?.name}'s Profile
+          </a>
+        )
+      }
+    </SignedIn>
+  </div>
+</nav>

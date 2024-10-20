@@ -1,0 +1,145 @@
+---
+import Nav from "./Nav.astro";
+import { actions } from "astro:actions";
+
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/astro/components";
+
+const auth = Astro.locals.auth();
+
+const viewer = await Astro.callAction(actions.viewers.getViewerByClerkId, {
+  clerkId: auth.userId ?? "",
+});
+
+const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
+---
+
+<div
+  id="sidebar"
+  class="fixed top-0 left-0 z-20 flex flex-col flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-150 lg:flex transition-width"
+>
+  <div
+    class="relative flex flex-col flex-1 min-h-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+  >
+    <div
+      class="flex flex-col flex-1 pt-5 pb-6 overflow-y-auto scrollbar scrollbar-w-2 scrollbar-thumb-rounded-md scrollbar-slate-200 dark:scrollbar-thumb-slate-900"
+    >
+      <SignedOut>
+        <SignInButton
+          mode="modal"
+          class="px-4 py-2 mx-4 my-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150"
+        />
+      </SignedOut>
+      <SignedIn>
+        {
+          viewer && (
+            <UserButton />
+            <a
+              href={`/viewers/${viewer.data?.id}`}
+              class="block px-4 py-2 mx-4 my-2 text-sm font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150"
+            >
+              {viewer.data?.name}'s Profile
+            </a>
+          )
+        }
+      </SignedIn>
+      <nav class="rounded-md">
+        <div class="container mx-auto p-4">
+          <ul class="space-y-2 text-lg text-white">
+            <li>
+              <a
+                href="/movies"
+                class="block px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors duration-150"
+                >movies</a
+              >
+            </li>
+            <li>
+              <a
+                href="/thelist"
+                class="block px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors duration-150"
+                >the list</a
+              >
+            </li>
+            <li>
+              <a
+                href="/viewers"
+                class="block px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors duration-150"
+                >viewers</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>
+<div
+	class="fixed inset-0 z-10 hidden bg-gray-900/50 dark:bg-gray-900/90"
+	id="sidebarBackdrop"
+>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+	const sidebar = document.getElementById('sidebar');
+
+	if (sidebar) {
+		const toggleSidebarMobile = (
+			sidebar: HTMLElement,
+			sidebarBackdrop: HTMLElement,
+			toggleSidebarMobileHamburger: HTMLElement,
+			toggleSidebarMobileClose: HTMLElement,
+		) => {
+			sidebar.classList.toggle('hidden');
+			sidebarBackdrop.classList.toggle('hidden');
+			toggleSidebarMobileHamburger.classList.toggle('hidden');
+			toggleSidebarMobileClose.classList.toggle('hidden');
+		};
+
+		const toggleSidebarMobileEl = document.getElementById(
+			'toggleSidebarMobile',
+		);
+		const sidebarBackdrop = document.getElementById('sidebarBackdrop')!;
+		const toggleSidebarMobileHamburger = document.getElementById(
+			'toggleSidebarMobileHamburger',
+		)!;
+		const toggleSidebarMobileClose = document.getElementById(
+			'toggleSidebarMobileClose',
+		)!;
+		const toggleSidebarMobileSearch = document.getElementById(
+			'toggleSidebarMobileSearch',
+		)!;
+
+		toggleSidebarMobileSearch?.addEventListener('click', () => {
+			toggleSidebarMobile(
+				sidebar,
+				sidebarBackdrop,
+				toggleSidebarMobileHamburger,
+				toggleSidebarMobileClose,
+			);
+		});
+
+		toggleSidebarMobileEl?.addEventListener('click', () => {
+			toggleSidebarMobile(
+				sidebar,
+				sidebarBackdrop,
+				toggleSidebarMobileHamburger,
+				toggleSidebarMobileClose,
+			);
+		});
+
+		sidebarBackdrop?.addEventListener('click', () => {
+			toggleSidebarMobile(
+				sidebar,
+				sidebarBackdrop,
+				toggleSidebarMobileHamburger,
+				toggleSidebarMobileClose,
+			);
+		});
+	}});
+</script>
