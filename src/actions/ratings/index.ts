@@ -9,17 +9,17 @@ export const ratings = {
         viewerId: z.string(),
         }),
         handler: async ({ viewerId }) => {
-        try {
-            const getAllRatings = await db
-            .select()
-            .from(RatingsDB)
-            .where(eq(RatingsDB.viewerId, Number(viewerId)))
-            .run();
-            const { rows } = getAllRatings;
-            return {rows, count: rows.length};
-        } catch (error) {
-            console.error('Error fetching ratings:', error);
-        }
+            try {
+                const getAllRatings = await db
+                .select()
+                .from(RatingsDB)
+                .where(eq(RatingsDB.viewerId, Number(viewerId)))
+                .run();
+                const { rows } = getAllRatings;
+                return {rows, count: rows.length};
+            } catch (error) {
+                console.error('Error fetching ratings:', error);
+            }
         },
     }),
 
