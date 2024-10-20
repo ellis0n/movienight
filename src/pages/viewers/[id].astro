@@ -1,55 +1,100 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import { actions } from "astro:actions";
 
 const auth = Astro.locals.auth();
 
-const viewers = await getCollection("Viewers");
-const availableRoute = viewers.find((v) => v.id === Astro.params.id);
+const getViewer = await Astro.callAction(
+  actions.viewers.getViewerWithRatingsAndMovies,
+  {
+    viewerId: Astro.params.id as string,
+    sort: "RATING_SCORE_DESC",
+  }
+);
+const { data: viewerObj, error } = getViewer;
 
-if (!availableRoute) return Astro.redirect("/404");
+if (error) {
+  return Astro.redirect("/404");
+}
 
-const viewer = availableRoute.data;
+const { id, name, clerkId, ratings, movies } = viewerObj || {
+  id: "",
+  name: "Unknown Viewer",
+  clerkId: "",
+  ratings: [],
+  movies: [],
+};
 
-const isViewer = auth && auth.userId === viewer.clerkId;
+const ratingsWithMovies = ratings
+  .map((rating) => {
+    const movie = movies.find((movie) => movie.id === rating.movieId);
+    return {
+      ...rating,
+      movieTitle: movie ? movie.title : "Unknown Movie",
+      movieId: movie ? movie.id : "",
+      score: rating.score, // Ensure score is included
+    };
+  })
+  .sort((a, b) => (Number(b.score) ?? 0) - (Number(a.score) ?? 0));
+
+const isViewer = auth && clerkId && auth.userId === clerkId;
 ---
 
-<Layout title={viewer.name}>
+<Layout title={name}>
   <div
     class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg"
   >
     <h1 class="text-4xl font-bold mb-4">
       {isViewer && <span class="text-green-500">👁️</span>}
-      {viewer.name}
+      {name}
     </h1>
 
-    {
+    <!-- {
       isViewer && (
-        <a href={`/viewers/${viewer.id}/edit`} class="text-blue-500 underline">
+        <a href={`/viewers/${id}/edit`} class="text-blue-500 underline">
           Edit Profile
         </a>
       )
-    }
+    } -->
 
-    <h2 class="text-2xl font-semibold mb-4">Movies Watched</h2>
-    <ul class="list-disc list-inside space-y-4">
-      {
-        viewer.ratings.map((rating) => (
-          <div class="p-4 bg-slate-800 rounded-lg hover:bg-slate-700 transition-colors duration-300">
-            <div class="flex justify-between items-center">
-              <a href={`/movies/${rating.movieId}`} class="underline text-lg">
-                {rating.movieTitle}
-              </a>
-              <a
-                href={`/viewers/${viewer.id}/ratings/${rating.id}`}
-                class="underline text-sm text-gray-400"
-              >
-                Rating: {rating.score}
-              </a>
-            </div>
-          </div>
-        ))
-      }
-    </ul>
+    <h2 class="text-2xl font-semibold mb-4">Ratings:</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-gray-800 rounded-lg">
+        <thead>
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-bold text-gray-300"
+              >Movie Title</th
+            >
+            <th class="px-4 py-2 text-left text-sm font-bold text-gray-300"
+              >Rating</th
+            >
+          </tr>
+        </thead>
+        <tbody>
+          {
+            ratingsWithMovies.map((rating) => (
+              <tr class="border-t border-gray-700 hover:bg-gray-700 transition duration-300 ease-in-out">
+                <td class="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 transition duration-300 ease-in-out">
+                  <a
+                    href={`/movies/${rating.movieId}`}
+                    class="block w-full h-full text-blue-400 hover:underline"
+                  >
+                    {rating.movieTitle}
+                  </a>
+                </td>
+                <td class="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 transition duration-300 ease-in-out">
+                  <a
+                    href={`/viewers/${id}/ratings/${rating.id}`}
+                    class="block w-full h-full text-blue-400 hover:underline"
+                  >
+                    {rating.score}
+                  </a>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 </Layout>

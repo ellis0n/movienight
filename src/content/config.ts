@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { db, MoviesDB, RatingsDB, ViewersDB } from 'astro:db';
+import { actions } from 'astro:actions';
 
 // Todo: Move to API
 const movies = await db.select().from(MoviesDB);
@@ -14,8 +15,7 @@ const viewers = await db.select().from(ViewersDB);
 // ** Movies Collection **
 // /movies/[id]
 const Movies = defineCollection({ 
- loader: async () => {
-
+  loader: async () => {
     // Map movies to include ratings
     const moviesWithRatings = movies.map((movie) => {
       const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);

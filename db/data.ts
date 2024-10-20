@@ -265,7 +265,7 @@ export const ratingsData = [
 export const viewersData = [
   { name: "Walt", clerkId: "walt@clerkId.com"},
   { name: "Jesse", clerkId: "jesse@clerkId.com" },
-  { name: "Kieran", clerkId: "kieran@clerkId.com"},
+  { name: "Kieran", clerkId: "user_2nfbZyfw3etREo7xr8Hdog6K6ih"},
   { name: "Nicole", clerkId: "nicole@clerkId.com" },
   { name: "Maggie", clerkId: "maggie@clerkId.com"},
   { name: "Jonny", clerkId: "jonny@clerkId.com"},

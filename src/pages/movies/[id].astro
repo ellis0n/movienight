@@ -4,14 +4,20 @@ import Layout from "../../layouts/Layout.astro";
 import { actions } from "astro:actions";
 
 const moviesCollection = await getCollection("Movies");
-const viewersCollection = await getCollection("Viewers");
 const movieEntry = moviesCollection.find((m) => m.id === Astro.params.id);
 if (!movieEntry) return Astro.redirect("/404");
 const movieContent = movieEntry ? movieEntry.data : null;
 
 const movie = await Astro.callAction(actions.movies.getMovieWithRatings, {
   movieId: Astro.params.id as string,
-  sort: "TOTAL_RATINGS_DESC",
+  sort: "RATING_SCORE_DESC",
+});
+
+// get the OMDB data
+const omdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
+  title: movieContent?.title ?? "",
+  // TODO: Move to experimental astro:env
+  apiKey: import.meta.env.OMDB_API_KEY as string,
 });
 
 // Calculate average rating and truncate to 2 decimal places
@@ -27,7 +33,6 @@ const calculateAverage = (ratings: any[]) => {
 
 // get the ratings and add the viewerName to each rating. ratings is an array of objects with viewerId, id, and score
 const ratings = movie.data ? movie.data[0].ratings : [];
-console.log(ratings);
 ---
 
 {
@@ -38,6 +43,40 @@ console.log(ratings);
         {movie.data && (
           <p class="text-lg mb-2">Average: {calculateAverage(ratings)}</p>
         )}
+
+        {omdb && (
+          <div class="flex flex-col md:flex-row bg-gray-800 p-4 rounded-lg shadow-lg">
+            <img
+              src={omdb.data.Poster}
+              alt={omdb.data.Title}
+              class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
+            />
+            <div class="flex-1">
+              <p class="text-lg mb-2">
+                <span class="font-bold">Year: </span> {omdb.data.Year}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Rated: </span> {omdb.data.Rated}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Runtime: </span> {omdb.data.Runtime}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Genre: </span> {omdb.data.Genre}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Director: </span> {omdb.data.Director}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Actors: </span> {omdb.data.Actors}
+              </p>
+              <p class="text-lg mb-2">
+                <span class="font-bold">Plot: </span> {omdb.data.Plot}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div class="overflow-x-auto">
           <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
             <thead>

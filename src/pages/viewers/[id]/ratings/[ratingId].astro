@@ -10,7 +10,6 @@ const viewer = viewers.find((v) => v.id === Astro.params.id);
 const rating = viewer?.data.ratings.find(
   (r) => r.id === Number(Astro.params.ratingId)
 );
-console.log(typeof rating);
 
 if (!viewer || !rating) return Astro.redirect("/404");
 
