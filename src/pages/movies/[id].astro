@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import { actions } from "astro:actions";
+import { Image } from "astro:assets";
 
 const moviesCollection = await getCollection("Movies");
 const movieEntry = moviesCollection.find((m) => m.id === Astro.params.id);
@@ -46,9 +47,11 @@ const ratings = movie.data ? movie.data[0].ratings : [];
 
         {omdb && (
           <div class="flex flex-col md:flex-row bg-gray-800 p-4 rounded-lg shadow-lg">
-            <img
+            <Image
               src={omdb.data.Poster}
               alt={omdb.data.Title}
+              height={288}
+              width={192}
               class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
             />
             <div class="flex-1">
