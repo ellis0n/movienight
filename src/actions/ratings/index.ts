@@ -45,7 +45,7 @@ export const ratings = {
 
     getRatingById: defineAction({
         input: z.object({
-        ratingId: z.string(),
+            ratingId: z.string(),
         }),
         handler: async ({ ratingId }) => {
         try {
