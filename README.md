@@ -2,9 +2,12 @@
 ## Movie Night 
 
 - [main branch](https://fubbs.vercel.app/)
-- [preview branch](https://fubbs-git-preview-ellis0ns-projects.vercel.app)
 
 movie night repo. runs in astro v.50 (beta), on vercel with remote db on turso. uses astro integration with astrodb and tailwind and probably a front end library???
+
+if using pnpm, run 
+`npm install sharp`
+after install.
 
 commands to use after installing:
 
@@ -19,6 +22,7 @@ to modify the remote db schema (as populated after running `astro run dev`):
 to seed the remote db contents from the dev seed:
 > `pnpm astro db execute db/seed.ts --remote`
 
-`.env` should contain:
->`ASTRO_DB_REMOTE_URL=[DB_URL]`
->`ASTRO_DB_APP_TOKEN=[SECRET-STRING]`
+- @ me for clerk key
+
+- 
+

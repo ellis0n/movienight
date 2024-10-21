@@ -35,7 +35,6 @@ const getOMDB = await Astro.callAction(actions.omdb.getManyOMDBFilms, {
 });
 
 const { data: moviesWithOmdb, error: omdbError } = getOMDB;
-console.log(moviesWithOmdb);
 
 if (omdbError) {
   console.error("Error fetching OMDB data:", omdbError);
