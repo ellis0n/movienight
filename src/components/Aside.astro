@@ -82,64 +82,72 @@ const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
 	id="sidebarBackdrop"
 >
 </div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
-	const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebarBackdrop) {
+      const toggleSidebarMobile = (
+        sidebar,
+        sidebarBackdrop,
+        toggleSidebarMobileHamburger,
+        toggleSidebarMobileClose
+      ) => {
+        sidebar.classList.toggle('hidden');
+        sidebarBackdrop.classList.toggle('hidden');
+        toggleSidebarMobileHamburger.classList.toggle('hidden');
+        toggleSidebarMobileClose.classList.toggle('hidden');
+      };
 
-	if (sidebar) {
-		const toggleSidebarMobile = (
-			sidebar: HTMLElement,
-			sidebarBackdrop: HTMLElement,
-			toggleSidebarMobileHamburger: HTMLElement,
-			toggleSidebarMobileClose: HTMLElement,
-		) => {
-			sidebar.classList.toggle('hidden');
-			sidebarBackdrop.classList.toggle('hidden');
-			toggleSidebarMobileHamburger.classList.toggle('hidden');
-			toggleSidebarMobileClose.classList.toggle('hidden');
-		};
+      const attachEventListeners = () => {
+        const toggleSidebarMobileEl = document.getElementById('toggleSidebarMobile');
+        const toggleSidebarMobileHamburger = document.getElementById('toggleSidebarMobileHamburger');
+        const toggleSidebarMobileClose = document.getElementById('toggleSidebarMobileClose');
+        const toggleSidebarMobileSearch = document.getElementById('toggleSidebarMobileSearch');
 
-		const toggleSidebarMobileEl = document.getElementById(
-			'toggleSidebarMobile',
-		);
-		const sidebarBackdrop = document.getElementById('sidebarBackdrop')!;
-		const toggleSidebarMobileHamburger = document.getElementById(
-			'toggleSidebarMobileHamburger',
-		)!;
-		const toggleSidebarMobileClose = document.getElementById(
-			'toggleSidebarMobileClose',
-		)!;
-		const toggleSidebarMobileSearch = document.getElementById(
-			'toggleSidebarMobileSearch',
-		)!;
+        if (toggleSidebarMobileSearch) {
+          toggleSidebarMobileSearch.addEventListener('click', () => {
+            toggleSidebarMobile(
+              sidebar,
+              sidebarBackdrop,
+              toggleSidebarMobileHamburger,
+              toggleSidebarMobileClose
+            );
+          });
+        }
 
-		toggleSidebarMobileSearch?.addEventListener('click', () => {
-			toggleSidebarMobile(
-				sidebar,
-				sidebarBackdrop,
-				toggleSidebarMobileHamburger,
-				toggleSidebarMobileClose,
-			);
-		});
+        if (toggleSidebarMobileEl) {
+          toggleSidebarMobileEl.addEventListener('click', () => {
+            toggleSidebarMobile(
+              sidebar,
+              sidebarBackdrop,
+              toggleSidebarMobileHamburger,
+              toggleSidebarMobileClose
+            );
+          });
+        }
 
-		toggleSidebarMobileEl?.addEventListener('click', () => {
-			toggleSidebarMobile(
-				sidebar,
-				sidebarBackdrop,
-				toggleSidebarMobileHamburger,
-				toggleSidebarMobileClose,
-			);
-		});
+        // Handle clicks outside the sidebar
+        document.addEventListener('click', (event) => {
+          if (!sidebar.contains(event.target) && !event.target.closest('#toggleSidebarMobile')) {
+            sidebar.classList.add('hidden');
+            sidebarBackdrop.classList.add('hidden');
+            toggleSidebarMobileHamburger.classList.remove('hidden');
+            toggleSidebarMobileClose.classList.add('hidden');
+          }
+        });
+      };
 
-		sidebarBackdrop?.addEventListener('click', () => {
-			toggleSidebarMobile(
-				sidebar,
-				sidebarBackdrop,
-				toggleSidebarMobileHamburger,
-				toggleSidebarMobileClose,
-			);
-		});
-	}});
+      // Attach event listeners initially
+      attachEventListeners();
+
+      // Use MutationObserver to reattach event listeners if elements are replaced
+      const observer = new MutationObserver(() => {
+        attachEventListeners();
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  });
 </script>
