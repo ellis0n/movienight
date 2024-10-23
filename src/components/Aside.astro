@@ -89,15 +89,19 @@ const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
 
     if (sidebar && sidebarBackdrop) {
       const toggleSidebarMobile = (
-        sidebar,
-        sidebarBackdrop,
-        toggleSidebarMobileHamburger,
-        toggleSidebarMobileClose
+        sidebar: HTMLElement,
+        sidebarBackdrop: HTMLElement,
+        toggleSidebarMobileHamburger: HTMLElement | null,
+        toggleSidebarMobileClose: HTMLElement | null
       ) => {
         sidebar.classList.toggle('hidden');
         sidebarBackdrop.classList.toggle('hidden');
-        toggleSidebarMobileHamburger.classList.toggle('hidden');
-        toggleSidebarMobileClose.classList.toggle('hidden');
+        if (toggleSidebarMobileHamburger) {
+          toggleSidebarMobileHamburger.classList.toggle('hidden');
+        }
+        if (toggleSidebarMobileClose) {
+          toggleSidebarMobileClose.classList.toggle('hidden');
+        }
       };
 
       const attachEventListeners = () => {
@@ -130,11 +134,15 @@ const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
 
         // Handle clicks outside the sidebar
         document.addEventListener('click', (event) => {
-          if (!sidebar.contains(event.target) && !event.target.closest('#toggleSidebarMobile')) {
+          if (!sidebar.contains(event.target as Node) && !(event.target as Element).closest('#toggleSidebarMobile')) {
             sidebar.classList.add('hidden');
             sidebarBackdrop.classList.add('hidden');
-            toggleSidebarMobileHamburger.classList.remove('hidden');
-            toggleSidebarMobileClose.classList.add('hidden');
+            if (toggleSidebarMobileHamburger) {
+              toggleSidebarMobileHamburger.classList.remove('hidden');
+            }
+            if (toggleSidebarMobileClose) {
+              toggleSidebarMobileClose.classList.add('hidden');
+            }
           }
         });
       };
