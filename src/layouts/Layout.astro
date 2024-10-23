@@ -18,12 +18,12 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <!-- <ViewTransitions /> -->
+    <ViewTransitions />
     <title>{title}</title>
   </head>
-  <body>
-    <Header transition:animate="none" />
-    <Aside transition:animate="none" />
+  <body transition:persist>
+    <Header transition:persist transition:animate="none" />
+    <Aside transition:persist transition:animate="none" />
     <div
       class="flex
       pt-16
@@ -73,3 +73,92 @@ const { title } = Astro.props;
     }
   </style>
 </html>
+
+<script>
+  document.addEventListener("astro:after-swap", () => {
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+    if (sidebar && sidebarBackdrop) {
+      const toggleSidebarMobile = (
+        sidebar: HTMLElement,
+        sidebarBackdrop: HTMLElement,
+        toggleSidebarMobileHamburger: HTMLElement | null,
+        toggleSidebarMobileClose: HTMLElement | null
+      ) => {
+        sidebar.classList.toggle("hidden");
+        sidebarBackdrop.classList.toggle("hidden");
+        if (toggleSidebarMobileHamburger) {
+          toggleSidebarMobileHamburger.classList.toggle("hidden");
+        }
+        if (toggleSidebarMobileClose) {
+          toggleSidebarMobileClose.classList.toggle("hidden");
+        }
+      };
+
+      const attachEventListeners = () => {
+        const toggleSidebarMobileEl = document.getElementById(
+          "toggleSidebarMobile"
+        );
+        const toggleSidebarMobileHamburger = document.getElementById(
+          "toggleSidebarMobileHamburger"
+        );
+        const toggleSidebarMobileClose = document.getElementById(
+          "toggleSidebarMobileClose"
+        );
+        const toggleSidebarMobileSearch = document.getElementById(
+          "toggleSidebarMobileSearch"
+        );
+
+        if (toggleSidebarMobileSearch) {
+          toggleSidebarMobileSearch.addEventListener("click", () => {
+            toggleSidebarMobile(
+              sidebar,
+              sidebarBackdrop,
+              toggleSidebarMobileHamburger,
+              toggleSidebarMobileClose
+            );
+          });
+        }
+
+        if (toggleSidebarMobileEl) {
+          toggleSidebarMobileEl.addEventListener("click", () => {
+            toggleSidebarMobile(
+              sidebar,
+              sidebarBackdrop,
+              toggleSidebarMobileHamburger,
+              toggleSidebarMobileClose
+            );
+          });
+        }
+
+        // Handle clicks outside the sidebar
+        document.addEventListener("click", (event) => {
+          if (
+            !sidebar.contains(event.target as Node) &&
+            !(event.target as Element).closest("#toggleSidebarMobile")
+          ) {
+            sidebar.classList.add("hidden");
+            sidebarBackdrop.classList.add("hidden");
+            if (toggleSidebarMobileHamburger) {
+              toggleSidebarMobileHamburger.classList.remove("hidden");
+            }
+            if (toggleSidebarMobileClose) {
+              toggleSidebarMobileClose.classList.add("hidden");
+            }
+          }
+        });
+      };
+
+      // Attach event listeners initially
+      attachEventListeners();
+
+      // Use MutationObserver to reattach event listeners if elements are replaced
+      const observer = new MutationObserver(() => {
+        attachEventListeners();
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  });
+</script>
