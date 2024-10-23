@@ -21,9 +21,9 @@ const { title } = Astro.props;
     <ViewTransitions />
     <title>{title}</title>
   </head>
-  <body transition:persist>
-    <Header transition:persist transition:animate="none" />
-    <Aside transition:persist transition:animate="none" />
+  <body>
+    <Header transition:animate="none" />
+    <Aside transition:animate="none" />
     <div
       class="flex
       pt-16
