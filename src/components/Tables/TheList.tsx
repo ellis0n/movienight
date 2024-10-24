@@ -30,29 +30,31 @@ interface TheListProps {
 }
 
 const TheList: React.FC<TheListProps> = ({ movieList = [], viewers = [] }) => {
+  console.log(movieList); // Check the structure here
+
   const [rowData] = useState<Movie[]>(movieList);
 
-  // Check for undefined or empty viewers array before generating columns
   const viewerColumns: ColDef[] = useMemo(() => {
-    return (viewers || []).map((viewer) => ({
-      headerName: viewer.name,
-      field: `viewer_${viewer.id}`, // Match the viewer score field
-      sortable: true,
-      filter: true,
-      minWidth: 150, // Set minimum width for viewer columns
-      cellRenderer: (params) => {
-        const value = params.value ?? 'N/A';
-        return value !== 'N/A' ? (
-          <a href={`/viewers/${viewer.id}/movies/${params.data.id}`} className="text-blue-500 hover:underline">
-            {value}
-          </a>
-        ) : (
-          value
-        );
-      },
-    }));
-  }, [viewers]);
-
+  return (viewers || []).map((viewer) => ({
+    headerName: viewer.name,
+    field: `ratings[${viewer.id}].score`, 
+    sortable: true,
+    filter: true,
+    minWidth: 150,
+    cellRenderer: (params: { data: Movie }) => {
+      const viewerRating = params.data.ratings.find((rating: { viewerId: number; }) => rating.viewerId === viewer.id);
+      const value = viewerRating ? viewerRating.score : 'N/A';
+      const ratingId = viewerRating ? viewerRating.ratingId : null; // Access the corresponding ratingId
+      return value !== 'N/A' && ratingId ? (
+        <a href={`/viewers/${viewer.id}/ratings/${ratingId}`} className="text-blue-500 hover:underline">
+          {value}
+        </a>
+      ) : (
+        value
+      );
+    },
+  }));
+}, [viewers]);
   // Column Definitions
   const colDefs: ColDef[] = [
     {
@@ -72,7 +74,7 @@ const TheList: React.FC<TheListProps> = ({ movieList = [], viewers = [] }) => {
       sortable: true,
       filter: true,
       minWidth: 200, // Set minimum width for title column
-      cellRenderer: (params) => {
+      cellRenderer: (params: { value: string; data: { id: any; }; }) => {
         const value = params.value ?? 'N/A';
         return value !== 'N/A' ? (
           <a href={`/movies/${params.data.id}`} className="text-blue-500 hover:underline">

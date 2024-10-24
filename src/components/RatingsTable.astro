@@ -16,30 +16,29 @@ const ratings = getRatings.data
     : getRatings.data.rows || []
   : [];
 
-// Structure the data
 const movieList = movies.map((movie) => {
-  const movieRatings = ratings
-    .filter((rating) => rating.movieId === movie.id)
-    .map((rating) => ({
-      viewerId: rating.viewerId,
-      score: rating.score,
-    }));
+  // Filter ratings by movieId
+  const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
 
   // Calculate the average rating
   const averageRating =
     movieRatings.length > 0
-      ? movieRatings.reduce(
-          (acc, rating) =>
-            acc + (typeof rating.score === "number" ? rating.score : 0),
-          0
-        ) / movieRatings.length
-      : 0; // Handle division by zero
+      ? (
+          movieRatings.reduce(
+            (acc, rating) =>
+              acc + (typeof rating.score === "number" ? rating.score : 0),
+            0
+          ) / movieRatings.length
+        ).toFixed(2) // Format to 2 decimal places
+      : "0.00"; // Handle division by zero
 
   // Prepare the object for each movie
-  const formattedRatings = viewers.map((viewer) => {
+  const ratingsData = viewers.map((viewer) => {
     const rating = movieRatings.find((r) => r.viewerId === viewer.id);
     return {
-      [`viewer_${viewer.id}`]: rating ? rating.score : "N/A", // Score or "N/A"
+      viewerId: viewer.id,
+      score: rating ? rating.score : "N/A", // Score or "N/A"
+      ratingId: rating ? rating.id : null, // Rating ID or null
     };
   });
 
@@ -47,8 +46,8 @@ const movieList = movies.map((movie) => {
     id: movie.id,
     title: movie.title,
     date: movie.date,
-    averageRating: averageRating.toFixed(2), // Format average to 2 decimal places
-    ...Object.assign({}, ...formattedRatings), // Merge viewer scores into the object
+    averageRating,
+    ratings: ratingsData, // Nesting ratings under the `ratings` key
   };
 });
 ---
