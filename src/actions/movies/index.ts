@@ -2,10 +2,6 @@ import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { asc, db, desc, eq, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
 
-interface Row {
-    [key: string]: any;
-}
-
 export const movies = {
 
     getAllMovies: defineAction({
@@ -22,6 +18,20 @@ export const movies = {
                     )
                     .run();
                 const { rows } = getMovies;
+                if (sort === 'DATE_DESC') {
+                    rows.sort((a, b) => {
+                        const dateA = a.date && (typeof a.date === 'string' || typeof a.date === 'number') ? new Date(a.date).getTime() : 0;
+                        const dateB = b.date && (typeof b.date === 'string' || typeof b.date === 'number') ? new Date(b.date).getTime() : 0;
+                        return dateB - dateA;
+                    });
+                }
+                if (sort === 'DATE_ASC') {
+                    rows.sort((a, b) => {
+                        const dateA = a.date && (typeof a.date === 'string' || typeof a.date === 'number') ? new Date(a.date).getTime() : 0;
+                        const dateB = b.date && (typeof b.date === 'string' || typeof b.date === 'number') ? new Date(b.date).getTime() : 0;
+                        return dateA - dateB;
+                    });
+                }
                 return rows;
             } catch (error) {
                 console.error('Error fetching movies:', error);

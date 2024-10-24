@@ -7,12 +7,14 @@ import clerk from '@clerk/astro';
 
 import vtbot from 'astro-vtbot';
 
+import react from '@astrojs/react';
+
 // https://astro.build/config
 export default defineConfig({
   experimental: {
     contentLayer: true,
   },
-  integrations: [tailwind(), db(), clerk(), vtbot()],
+  integrations: [tailwind(), db(), clerk(), vtbot(), react()],
   output: 'server',
   adapter: vercel(),
 });

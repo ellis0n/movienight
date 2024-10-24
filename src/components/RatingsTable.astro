@@ -1,66 +1,58 @@
 ---
-import { MoviesDB, RatingsDB, ViewersDB } from "astro:db";
-import { db } from "astro:db";
+import TheList from "@components/Tables/TheList";
+import { actions } from "astro:actions";
 
-const movies = await db.select().from(MoviesDB);
-const ratings = await db.select().from(RatingsDB);
-const viewers = await db.select().from(ViewersDB);
+const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
+  sort: "DATE_ASC",
+});
+const getViewers = await Astro.callAction(actions.viewers.getAllViewers, {});
+const getRatings = await Astro.callAction(actions.ratings.getAllRatings, {});
 
+const movies = getMovies.data || [];
+const viewers = Array.isArray(getViewers.data) ? getViewers.data : [];
+const ratings = getRatings.data
+  ? Array.isArray(getRatings.data)
+    ? getRatings.data
+    : getRatings.data.rows || []
+  : [];
+
+// Structure the data
 const movieList = movies.map((movie) => {
-  const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
-  const movieViewers = viewers.filter((viewer) =>
-    movieRatings.some((rating) => rating.viewerId === viewer.id)
-  );
+  const movieRatings = ratings
+    .filter((rating) => rating.movieId === movie.id)
+    .map((rating) => ({
+      viewerId: rating.viewerId,
+      score: rating.score,
+    }));
+
+  // Calculate the average rating
+  const averageRating =
+    movieRatings.length > 0
+      ? movieRatings.reduce(
+          (acc, rating) =>
+            acc + (typeof rating.score === "number" ? rating.score : 0),
+          0
+        ) / movieRatings.length
+      : 0; // Handle division by zero
+
+  // Prepare the object for each movie
+  const formattedRatings = viewers.map((viewer) => {
+    const rating = movieRatings.find((r) => r.viewerId === viewer.id);
+    return {
+      [`viewer_${viewer.id}`]: rating ? rating.score : "N/A", // Score or "N/A"
+    };
+  });
+
   return {
-    ...movie,
-    viewers: movieViewers.length,
+    id: movie.id,
+    title: movie.title,
+    date: movie.date,
+    averageRating: averageRating.toFixed(2), // Format average to 2 decimal places
+    ...Object.assign({}, ...formattedRatings), // Merge viewer scores into the object
   };
 });
-
-const convertToStars = (average: number) => {
-  const starRating = Math.round(average / 2);
-  return "⭐".repeat(starRating);
-};
 ---
 
-<div class="text-white">
-  <h2 class="text-4xl font-bold text-center mb-4">The List</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-gray-800">
-      <thead>
-        <tr>
-          <th class="py-2 px-4 border-b border-gray-700 text-left">Title</th>
-          <th class="py-2 px-4 border-b border-gray-700 text-left">Consensus</th
-          >
-          <th class="py-2 px-4 border-b border-gray-700 text-left">Watchers</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          movieList.map((movie) => (
-            <tr class="hover:bg-gray-700 text-lg">
-              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
-                <a
-                  href={`/movies/${movie.id}`}
-                  class="block h-full w-full flex items-center"
-                >
-                  {movie.title}
-                </a>
-              </td>
-              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
-                <span class="block h-full w-full flex items-center">
-                  {convertToStars(movie.average)}
-                </span>
-              </td>
-              <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600 h-full">
-                <span class="block h-full w-full flex items-center">
-                  {movie.viewers}
-                </span>
-              </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
+<div class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl">
+  <TheList movieList={movieList} viewers={viewers} client:load />
 </div>
