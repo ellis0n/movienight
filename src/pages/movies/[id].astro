@@ -18,7 +18,7 @@ const movie = await Astro.callAction(actions.movies.getMovieWithRatings, {
 const omdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
   title: movieContent?.title ?? "",
   // TODO: Move to experimental astro:env
-  apiKey: import.meta.env.OMDB_API_KEY as string,
+  apiKey: import.meta.env.PUBLIC_OMDB_API_KEY as string,
 });
 
 // Calculate average rating and truncate to 2 decimal places

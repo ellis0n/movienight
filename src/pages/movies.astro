@@ -31,7 +31,7 @@ const movieQueryParams = movies
 // Fetch OMDB data for all movies
 const getOMDB = await Astro.callAction(actions.omdb.getManyOMDBFilms, {
   movieQueryParams,
-  apiKey: import.meta.env.OMDB_API_KEY,
+  apiKey: import.meta.env.PUBLIC_OMDB_API_KEY,
 });
 
 const { data: moviesWithOmdb, error: omdbError } = getOMDB;

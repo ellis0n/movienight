@@ -1,57 +1,11 @@
 ---
-import TheList from "@components/Tables/TheList";
+import { TheList } from "@components/Tables/TheList";
 import { actions } from "astro:actions";
 
-const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
-  sort: "DATE_ASC",
-});
-const getViewers = await Astro.callAction(actions.viewers.getAllViewers, {});
-const getRatings = await Astro.callAction(actions.ratings.getAllRatings, {});
-
-const movies = getMovies.data || [];
-const viewers = Array.isArray(getViewers.data) ? getViewers.data : [];
-const ratings = getRatings.data
-  ? Array.isArray(getRatings.data)
-    ? getRatings.data
-    : getRatings.data.rows || []
-  : [];
-
-const movieList = movies.map((movie) => {
-  // Filter ratings by movieId
-  const movieRatings = ratings.filter((rating) => rating.movieId === movie.id);
-
-  // Calculate the average rating
-  const averageRating =
-    movieRatings.length > 0
-      ? (
-          movieRatings.reduce(
-            (acc, rating) =>
-              acc + (typeof rating.score === "number" ? rating.score : 0),
-            0
-          ) / movieRatings.length
-        ).toFixed(2) // Format to 2 decimal places
-      : "0.00"; // Handle division by zero
-
-  // Prepare the object for each movie
-  const ratingsData = viewers.map((viewer) => {
-    const rating = movieRatings.find((r) => r.viewerId === viewer.id);
-    return {
-      viewerId: viewer.id,
-      score: rating ? rating.score : "N/A", // Score or "N/A"
-      ratingId: rating ? rating.id : null, // Rating ID or null
-    };
-  });
-
-  return {
-    id: movie.id,
-    title: movie.title,
-    date: movie.date,
-    averageRating,
-    ratings: ratingsData, // Nesting ratings under the `ratings` key
-  };
-});
+const result = await Astro.callAction(actions.util.getTheList, {});
 ---
 
 <div class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl">
-  <TheList movieList={movieList} viewers={viewers} client:load />
+  <h1 class="text-2xl font-bold mb-4">The List</h1>
+  <TheList client:load tableData={result?.data?.tableData ?? []} />
 </div>

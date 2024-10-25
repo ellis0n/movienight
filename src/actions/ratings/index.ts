@@ -4,21 +4,6 @@ import { db, eq, RatingsDB } from 'astro:db';
 
 export const ratings = {
 
-    getAllRatings: defineAction({
-        handler: async () => {
-            try {
-                const getAllRatings = await db
-                .select()
-                .from(RatingsDB)
-                .run();
-                const { rows } = getAllRatings;
-                return {rows, count: rows.length};
-            } catch (error) {
-                console.error('Error fetching ratings:', error);
-            }
-        },
-    }),
-
     getAllRatingsForViewer: defineAction({
         input: z.object({
         viewerId: z.string(),
