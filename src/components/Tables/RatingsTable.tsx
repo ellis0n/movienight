@@ -66,7 +66,6 @@ const RatingsTable: React.FC<RatingsTableProps> = ({ data }) => {
         defaultColDef={defaultColDef}
         domLayout="autoHeight"
         enableCellTextSelection={true}
-        suppressCopyRowsToClipboard={true}
       />
     </div>
   );

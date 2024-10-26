@@ -103,12 +103,28 @@ const tableData = mergedMovies.map((movie) => ({
 </Layout>
 
 <script>
-  const viewToggle = document.getElementById("viewToggle");
-  const cardView = document.getElementById("cardView");
-  const tableView = document.getElementById("tableView");
+  document.addEventListener("astro:page-load", () => {
+    const viewToggle = document.getElementById("viewToggle");
+    const cardView = document.getElementById("cardView");
+    const tableView = document.getElementById("tableView");
 
-  viewToggle?.addEventListener("click", () => {
-    cardView?.classList.toggle("hidden");
-    tableView?.classList.toggle("hidden");
+    const toggleView = () => {
+      cardView?.classList.toggle("hidden");
+      tableView?.classList.toggle("hidden");
+    };
+
+    const attachEventListeners = () => {
+      viewToggle?.addEventListener("click", toggleView);
+    };
+
+    // Attach event listeners initially
+    attachEventListeners();
+
+    // Use MutationObserver to reattach event listeners if elements are replaced
+    const observer = new MutationObserver(() => {
+      attachEventListeners();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
   });
 </script>
