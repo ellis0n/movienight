@@ -8,29 +8,26 @@ export const util = {
     getTheList: defineAction({
         handler: async () => {
             try {
-                // get all movies
                 const movies = await db.select().from(MoviesDB).run();
-
-                // get all viewers
                 const viewers = await db.select().from(ViewersDB).run();
-                // get all ratings
                 const ratings = await db.select().from(RatingsDB).run();
-                // get all omdb films
-                // prepare movie query params for the OMDB request
-                const movieListWithRatings = movies.rows.map((movie) => ({
-                    ...movie,
-                    ratings: ratings.rows.filter((rating) => rating.movieId === movie.id)
-                }));
 
-                // match the ratings to the viewers
-                const ratingsWithViewers = ratings.rows.map((rating) => ({
-                    ...rating,
-                    viewer: viewers.rows.find((viewer) => viewer.id === rating.viewerId)
-                }));
-                // combine the data
-                const tableData = movieListWithRatings.map(movie => ({
+                const viewersMap = new Map(viewers.rows.map(viewer => [viewer.id, viewer]));
+                
+                const ratingsMap = ratings.rows.reduce((acc, rating) => {
+                    if (!acc.has(rating.movieId)) {
+                        acc.set(rating.movieId, []);
+                    }
+                    acc.get(rating.movieId).push({
+                        ...rating,
+                        viewer: viewersMap.get(rating.viewerId)
+                    });
+                    return acc;
+                }, new Map());
+
+                const tableData = movies.rows.map(movie => ({
                     ...movie,
-                    ratings: ratingsWithViewers.filter(rating => rating.movieId === movie.id)
+                    ratings: ratingsMap.get(movie.id) || []
                 }));
 
                 return { tableData };

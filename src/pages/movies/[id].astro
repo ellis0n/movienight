@@ -1,120 +1,84 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import { actions } from "astro:actions";
 import { Image } from "astro:assets";
+import MovieRatings from "@components/Tables/MovieRatings";
 
-const moviesCollection = await getCollection("Movies");
-const movieEntry = moviesCollection.find((m) => m.id === Astro.params.id);
-if (!movieEntry) return Astro.redirect("/404");
-const movieContent = movieEntry ? movieEntry.data : null;
+const auth = Astro.locals.auth();
 
-const movie = await Astro.callAction(actions.movies.getMovieWithRatings, {
+const getMovie = await Astro.callAction(actions.movies.getMovieWithRatings, {
   movieId: Astro.params.id as string,
   sort: "RATING_SCORE_DESC",
 });
 
-// get the OMDB data
-const omdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
-  title: movieContent?.title ?? "",
-  // TODO: Move to experimental astro:env
+const { data: movieObj, error } = getMovie;
+
+if (error) {
+  return Astro.redirect("/404");
+}
+
+const { id, title, average, date, ratings } = movieObj[0] || {
+  id: "",
+  title: "Unknown Movie",
+  average: 0,
+  date: new Date(),
+  ratings: [],
+};
+
+const getOMDB = await Astro.callAction(actions.omdb.getOmdbFilm, {
+  title: title,
   apiKey: import.meta.env.PUBLIC_OMDB_API_KEY as string,
 });
 
-// Calculate average rating and truncate to 2 decimal places
-const calculateAverage = (ratings: any[]) => {
-  if (!ratings || ratings.length === 0) return 0;
-  const total = ratings.reduce(
-    (acc: any, rating: { score: any }) => acc + rating.score,
-    0
-  );
-  const average = total / ratings.length;
-  return Math.floor(average * 100) / 100; // Truncate to 2 decimal places
-};
+const { data: omdb, error: omdbError } = getOMDB;
 
-// get the ratings and add the viewerName to each rating. ratings is an array of objects with viewerId, id, and score
-const ratings = movie.data ? movie.data[0].ratings : [];
+if (omdbError) {
+  console.error("Error fetching OMDB data:", omdbError);
+}
 ---
 
-{
-  movieContent && (
-    <Layout title={movieContent.title}>
+<Layout title={title}>
+  {
+    movieObj && (
       <div class="container mx-auto p-4 text-white">
-        <h1 class="text-4xl font-bold mb-4">{movieContent.title}</h1>
-        {movie.data && (
-          <p class="text-lg mb-2">Average: {calculateAverage(ratings)}</p>
-        )}
+        <h1 class="text-4xl font-bold mb-4">{title}</h1>
 
         {omdb && (
           <div class="flex flex-col md:flex-row bg-gray-800 p-4 rounded-lg shadow-lg">
             <Image
-              src={omdb.data.Poster}
-              alt={omdb.data.Title}
+              src={omdb.Poster}
+              alt={omdb.Title}
               height={288}
               width={192}
               class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
-              transition:name={omdb.data.Poster}
+              transition:name={omdb.Poster}
             />
             <div class="flex-1">
               <p class="text-lg mb-2">
-                <span class="font-bold">Year: </span> {omdb.data.Year}
+                <span class="font-bold">Year: </span> {omdb.Year}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Rated: </span> {omdb.data.Rated}
+                <span class="font-bold">Director: </span> {omdb.Director}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Runtime: </span> {omdb.data.Runtime}
+                <span class="font-bold">Plot: </span> {omdb.Plot}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Genre: </span> {omdb.data.Genre}
+                <span class="font-bold">Average Rating: </span> {average}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Director: </span> {omdb.data.Director}
-              </p>
-              <p class="text-lg mb-2">
-                <span class="font-bold">Actors: </span> {omdb.data.Actors}
-              </p>
-              <p class="text-lg mb-2">
-                <span class="font-bold">Plot: </span> {omdb.data.Plot}
+                <span class="font-bold">Date Watched: </span>{" "}
+                {new Date(date).toLocaleDateString()}
               </p>
             </div>
           </div>
         )}
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-gray-800 rounded-lg table-fixed">
-            <thead>
-              <tr class="bg-gray-700 text-left text-gray-300">
-                <th class="py-2 px-4 border-b border-gray-600 w-1/4">Viewer</th>
-                <th class="py-2 px-4 border-b border-gray-600 w-3/4">Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ratings &&
-                ratings.map((rating) => (
-                  <tr class="hover:bg-gray-700">
-                    <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
-                      <a
-                        href={`/viewers/${rating.viewerId}`}
-                        class="block text-sm underline h-full w-full"
-                      >
-                        {rating.viewerName}
-                      </a>
-                    </td>
-                    <td class="py-2 px-4 border-b border-gray-600 hover:bg-gray-600">
-                      <a
-                        href={`/viewers/${rating.viewerId}/ratings/${rating.id}`}
-                        class="block text-lg font-bold underline h-full w-full"
-                      >
-                        {rating.score}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <div class="mt-8">
+          <h2 class="text-2xl font-semibold mb-4">Ratings:</h2>
+          <MovieRatings client:load data={ratings} movieId={id} />
         </div>
       </div>
-    </Layout>
-  )
-}
+    )
+  }
+</Layout>

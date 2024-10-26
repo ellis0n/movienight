@@ -1,87 +1,114 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
-import { actions } from "astro:actions";
 import { Image } from "astro:assets";
+import { actions } from "astro:actions";
+import MoviesTable from "@components/Tables/MoviesTable";
 import placeholder from "../assets/placeholdermovie.png";
 
-//TODO: We should be populating a getCollection with the OMDB data on adding movie,
-// much of this logic should be moved to an initialization call on backend
-// and we should use content collections to store/reference the data
-
-// Fetch movies data
 const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
   sort: "TITLE_ASC",
 });
+
 const { data: movies, error: moviesError } = getMovies;
 
 if (moviesError) {
   console.error("Error fetching movies:", moviesError);
-  Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 
-// Prepare movie query params for the OMDB request
-const movieQueryParams = movies
-  ? movies.map((movie) => ({
-      title: String(movie.title),
-      movieId: String(movie.id),
-    }))
-  : [];
-
-// Fetch OMDB data for all movies
 const getOMDB = await Astro.callAction(actions.omdb.getManyOMDBFilms, {
-  movieQueryParams,
   apiKey: import.meta.env.PUBLIC_OMDB_API_KEY,
+  movieQueryParams:
+    movies?.map((movie) => ({
+      movieId: String(movie.id),
+      title: String(movie.title),
+    })) ?? [],
 });
 
 const { data: moviesWithOmdb, error: omdbError } = getOMDB;
 
 if (omdbError) {
   console.error("Error fetching OMDB data:", omdbError);
-  Astro.redirect("/404");
 }
+
+// Merge OMDB data with our movie data
+const mergedMovies =
+  movies?.map((movie) => {
+    const omdbData = moviesWithOmdb?.find(
+      (omdbMovie) => omdbMovie.movieId === String(movie.id)
+    );
+    return {
+      ...movie,
+      poster: omdbData?.Poster || placeholder,
+    };
+  }) ?? [];
+
+const tableData = mergedMovies.map((movie) => ({
+  id: movie.id,
+  title: movie.title,
+  date: movie.date ? new Date(movie.date).toISOString().split("T")[0] : "N/A",
+  average: typeof movie.average === "number" ? movie.average.toFixed(2) : "N/A",
+  poster: movie.poster,
+}));
 ---
 
 <Layout title="Movies">
   <div
     class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl"
   >
-    <h1 class="text-4xl font-bold mb-6">Movies</h1>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-4xl font-bold">Movies</h1>
+      <button
+        id="viewToggle"
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Toggle View
+      </button>
+    </div>
+
     <div
+      id="cardView"
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
     >
       {
-        moviesWithOmdb &&
-          moviesWithOmdb.map((movie) => (
-            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
-              <a href={`/movies/${movie.movieId}`} class="block">
-                <Image
-                  src={movie.Poster || placeholder}
-                  alt={movie.Title || movie.title}
-                  height={288}
-                  width={192}
-                  class="w-full h-64 object-cover"
-                  transition:name={movie.Poster || null}
-                />
-                <div class="p-4">
-                  <h2 class="text-lg font-semibold mb-2 text-blue-200 hover:text-blue-400 transition-colors duration-300">
-                    {movie.Title || movie.title}
-                  </h2>
-                  <div class="text-sm text-gray-400 space-y-1">
-                    <p>
-                      <span class="font-bold text-gray-300">Year:</span>{" "}
-                      {movie.Year || "N/A"}
-                    </p>
-                    <p>
-                      <span class="font-bold text-gray-300">Genre:</span>{" "}
-                      {movie.Genre || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </a>
-            </div>
-          ))
+        mergedMovies.map((movie) => (
+          <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
+            <a href={`/movies/${movie.id}`} class="block">
+              <Image
+                src={movie.poster}
+                alt={movie.title}
+                height={288}
+                width={192}
+                class="w-full h-64 object-cover"
+              />
+              <div class="p-4">
+                <h2 class="text-xl font-semibold mb-2">{movie.title}</h2>
+                <p class="text-gray-400">
+                  Average Rating: {movie.average.toFixed(2)}
+                </p>
+                <p class="text-gray-400">
+                  Date: {new Date(movie.date).toLocaleDateString()}
+                </p>
+              </div>
+            </a>
+          </div>
+        ))
       }
+    </div>
+
+    <div id="tableView" class="hidden">
+      <MoviesTable client:load data={tableData} />
     </div>
   </div>
 </Layout>
+
+<script>
+  const viewToggle = document.getElementById("viewToggle");
+  const cardView = document.getElementById("cardView");
+  const tableView = document.getElementById("tableView");
+
+  viewToggle?.addEventListener("click", () => {
+    cardView?.classList.toggle("hidden");
+    tableView?.classList.toggle("hidden");
+  });
+</script>

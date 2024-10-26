@@ -1,24 +1,25 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { actions } from "astro:actions";
-
+import UserRatings from "@components/Tables/UserRatings";
+const id = Astro.params.id as string;
 const auth = Astro.locals.auth();
 
 const getViewer = await Astro.callAction(
   actions.viewers.getViewerWithRatingsAndMovies,
   {
-    viewerId: Astro.params.id as string,
+    viewerId: id,
     sort: "RATING_SCORE_DESC",
   }
 );
-const { data: viewerObj, error } = getViewer;
+const { data: viewer, error } = getViewer;
 
-if (error) {
+if (!viewer || error) {
   return Astro.redirect("/404");
 }
 
-const { id, name, clerkId, ratings, movies } = viewerObj || {
-  id: "",
+const { viewerId, name, clerkId, ratings, movies } = viewer || {
+  viewerId: "",
   name: "Unknown Viewer",
   clerkId: "",
   ratings: [],
@@ -29,10 +30,12 @@ const ratingsWithMovies = ratings
   .map((rating) => {
     const movie = movies.find((movie) => movie.id === rating.movieId);
     return {
+      viewerId: viewer.viewerId,
       ...rating,
       movieTitle: movie ? movie.title : "Unknown Movie",
       movieId: movie ? movie.id : "",
-      score: rating.score, // Ensure score is included
+      score: rating.score,
+      date: movie ? movie.date : null,
     };
   })
   .sort((a, b) => (Number(b.score) ?? 0) - (Number(a.score) ?? 0));
@@ -49,53 +52,7 @@ const isViewer = auth && clerkId && auth.userId === clerkId;
       {name}
     </h1>
 
-    <!-- {
-      isViewer && (
-        <a href={`/viewers/${id}/edit`} class="text-blue-500 underline">
-          Edit Profile
-        </a>
-      )
-    } -->
-
     <h2 class="text-2xl font-semibold mb-4">Ratings:</h2>
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-gray-800 rounded-lg">
-        <thead>
-          <tr>
-            <th class="px-4 py-2 text-left text-sm font-bold text-gray-300"
-              >Movie Title</th
-            >
-            <th class="px-4 py-2 text-left text-sm font-bold text-gray-300"
-              >Rating</th
-            >
-          </tr>
-        </thead>
-        <tbody>
-          {
-            ratingsWithMovies.map((rating) => (
-              <tr class="border-t border-gray-700 hover:bg-gray-700 transition duration-300 ease-in-out">
-                <td class="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 transition duration-300 ease-in-out">
-                  <a
-                    href={`/movies/${rating.movieId}`}
-                    class="block w-full h-full text-blue-400 hover:underline"
-                  >
-                    {rating.movieTitle}
-                  </a>
-                </td>
-                <td class="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 transition duration-300 ease-in-out">
-                  {/* @ts-expect-error */}
-                  <a
-                    href={`/viewers/${id}/ratings/${rating.id}`}
-                    class="block w-full h-full text-blue-400 hover:underline"
-                  >
-                    {rating.score}
-                  </a>
-                </td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
+    <UserRatings client:load data={ratingsWithMovies} viewerId={id} />
   </div>
 </Layout>

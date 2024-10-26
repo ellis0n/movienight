@@ -4,10 +4,6 @@ import { navigate } from 'astro:transitions/client';
 
 const OMDB_URL = 'https://www.omdbapi.com/?apikey='
 
-interface ImageTooltipProps {
-  title: string;
-}
-
 const ImageTooltip: React.FC<{ title: string }> = ({ title }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 

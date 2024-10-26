@@ -4,7 +4,7 @@ import { db, eq, RatingsDB } from 'astro:db';
 
 export const ratings = {
 
-    getAllRatingsForViewer: defineAction({
+    getViewerRatings: defineAction({
         input: z.object({
         viewerId: z.string(),
         }),

@@ -4,8 +4,7 @@ import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { db, sql, eq, ViewersDB, RatingsDB, MoviesDB } from 'astro:db';
 
-const OMDB_URL = 'http://www.omdbapi.com/?apikey='
-const OMDB_IMG_URL = 'http://img.omdbapi.com/?apikey='
+const OMDB_URL = 'https://www.omdbapi.com/?apikey='
 
 export const omdb = {
     getOmdbFilm: defineAction({
@@ -35,7 +34,7 @@ export const omdb = {
         handler: async ({ 
             movieQueryParams,
             apiKey
-         }) => {
+        }) => {
             try {
                 const films = await Promise.all(movieQueryParams.map(async ({ title, movieId }) => {
                     const response = await fetch(`${OMDB_URL}${apiKey}&t=${encodeURIComponent(title)}`);

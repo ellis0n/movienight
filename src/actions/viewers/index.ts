@@ -95,7 +95,7 @@ export const viewers = {
                     .from(RatingsDB)
                     .where(eq(RatingsDB.viewerId, Number(viewerId)))
                     .run();
-                const viewerWithRatings: { ratings: typeof ratings.rows, movies: typeof movies, [key: string]: any } = { ...viewer.rows[0], ratings: ratings.rows, movies: [] };
+                const viewerWithRatings: { viewerId: typeof viewerId, ratings: typeof ratings.rows, movies: any[], [key: string]: any } = { ...viewer.rows[0], viewerId, ratings: ratings.rows, movies: [] };
                 const movies = await Promise.all(
                     viewerWithRatings.ratings.map(async (rating) => {
                         const movie = await db
