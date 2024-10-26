@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { navigate } from 'astro:transitions/client';
 
 
-const OMDB_URL = 'http://www.omdbapi.com/?apikey='
+const OMDB_URL = 'https://www.omdbapi.com/?apikey='
 
 interface ImageTooltipProps {
   title: string;

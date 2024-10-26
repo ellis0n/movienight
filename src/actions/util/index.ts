@@ -1,8 +1,8 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { db, eq, RatingsDB, MoviesDB, ViewersDB } from 'astro:db';
-const OMDB_URL = 'http://www.omdbapi.com/?apikey='
-const OMDB_IMG_URL = 'http://img.omdbapi.com/?apikey='
+const OMDB_URL = 'https://www.omdbapi.com/?apikey='
+const OMDB_IMG_URL = 'https://img.omdbapi.com/?apikey='
 
 export const util = {
     getTheList: defineAction({
