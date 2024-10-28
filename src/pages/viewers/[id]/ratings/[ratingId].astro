@@ -30,11 +30,9 @@ if (!ratingError && ratingData) {
     }
   } else {
     console.error("Error fetching movie:", movieError);
-    Astro.redirect("/404");
   }
 } else {
   console.error("Error fetching rating:", ratingError);
-  Astro.redirect("/404");
 }
 
 const auth = Astro.locals.auth();
@@ -46,7 +44,7 @@ const rating = viewer?.data.ratings.find(
   (r) => r.id === Number(Astro.params.ratingId)
 );
 
-if (!viewer || !rating) return Astro.redirect("/404");
+// if (!viewer || !rating) return Astro.redirect("/404");
 
 const isViewer = auth && auth.userId === viewer.data.clerkId;
 ---

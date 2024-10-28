@@ -30,21 +30,18 @@ const result = await Astro.getActionResult(actions.ratings.updateScore);
   {
     rating && movie ? (
       <>
-        {result ? (
-          <p class="text-lg mt-6 text-green-500">{result.data?.message}</p>
-        ) : null}
+        <div id="message" class="text-lg mt-6 text-green-500 hidden" />
         <h2>{movieTitle}</h2>
-        <p class="text-lg mt-6">Score: {rating.data?.score}</p>
+        <p class="text-lg mt-6">
+          Current Score: <span id="currentScore">{rating.data?.score}</span>
+        </p>
         <form
           class="mt-6 space-y-4"
           method="POST"
-          action={
-            `${Astro.params.id}/viewers/${Astro.params.ratingId}` +
-            actions.ratings.updateScore
-          }
+          action={actions.ratings.updateScore}
         >
           <label for="score" class="block text-sm font-medium text-gray-300">
-            Score
+            New Score
           </label>
           {id && <input type="hidden" name="id" value={id.toString()} />}
           <input
@@ -56,38 +53,84 @@ const result = await Astro.getActionResult(actions.ratings.updateScore);
             step="0.1"
             value={(score ?? "").toString()}
             class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md
-          shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500
-          sm:text-sm"
+            shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500
+            sm:text-sm"
           />
           <button
             type="submit"
-            class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="w-full inline-flex justify-center py-2 px-4 border border-transparent 
+            shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 
+            hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+            focus:ring-blue-500"
           >
             Save
           </button>
         </form>
-
-        {result && result.error ? (
-          <p class="text-lg mt-6 text-red-500">{result.error}</p>
-        ) : null}
       </>
-    ) : (
-      <p class="text-lg mb-6">Rating not found.</p>
-    )
+    ) : null
   }
 </div>
 
 <script>
   import { actions } from "astro:actions";
-  import { navigate } from "astro:transitions/client";
 
   const form = document.querySelector("form");
+  const messageDiv = document.getElementById("message");
+  const currentScoreSpan = document.getElementById("currentScore");
+  const scoreInput = document.getElementById("score") as HTMLInputElement;
+
+  // Function to sync the form input with the current score
+  const syncScoreInput = () => {
+    if (currentScoreSpan && scoreInput) {
+      scoreInput.value = currentScoreSpan.textContent || "";
+    }
+  };
+
+  // Initial sync on page load
+  syncScoreInput();
+
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
-    const { error } = await actions.ratings.updateScore(formData);
-    if (!error) {
-      navigate(`/viewers/${Astro.params.id}/ratings/${Astro.params.ratingId}`);
+    const response = await actions.ratings.updateScore(formData);
+
+    if (response.data?.success) {
+      // Update the displayed score
+      if (currentScoreSpan) {
+        currentScoreSpan.textContent = formData.get("score")?.toString() ?? "";
+      }
+
+      // Sync the form input with the new score
+      syncScoreInput();
+
+      // Show success message
+      if (messageDiv) {
+        messageDiv.textContent =
+          response.data?.message ?? "Score updated successfully";
+        messageDiv.classList.remove("hidden");
+        messageDiv.classList.add("text-green-500");
+        messageDiv.classList.remove("text-red-500");
+
+        setTimeout(() => {
+          messageDiv.classList.add("hidden");
+        }, 3000);
+      }
+    } else {
+      // Show error message
+      if (messageDiv) {
+        messageDiv.textContent =
+          response.data?.error || "Failed to update rating";
+        messageDiv.classList.remove("hidden");
+        messageDiv.classList.remove("text-green-500");
+        messageDiv.classList.add("text-red-500");
+      }
+    }
+  });
+
+  // Optional: Add event listener for page visibility changes
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      syncScoreInput();
     }
   });
 </script>
