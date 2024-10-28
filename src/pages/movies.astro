@@ -42,8 +42,7 @@ const mergedMovies =
       poster: omdbData?.Poster || placeholder,
     };
   }) ?? [];
-
-const tableData = mergedMovies.map((movie) => ({
+const tableData = (mergedMovies ?? []).map((movie) => ({
   id: movie.id,
   title: movie.title,
   date: movie.date ? new Date(movie.date).toISOString().split("T")[0] : "N/A",
@@ -80,6 +79,7 @@ const tableData = mergedMovies.map((movie) => ({
                 height={288}
                 width={192}
                 class="w-full h-64 object-cover"
+                transition:name={`${movie.poster}`}
               />
               <div class="p-4">
                 <h2 class="text-xl font-semibold mb-2">{movie.title}</h2>

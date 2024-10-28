@@ -44,12 +44,12 @@ const rating = viewer?.data.ratings.find(
   (r) => r.id === Number(Astro.params.ratingId)
 );
 
-// if (!viewer || !rating) return Astro.redirect("/404");
+if (!viewer || !rating) return Astro.redirect("/404");
 
 const isViewer = auth && auth.userId === viewer.data.clerkId;
 ---
 
-<Layout title={`Rating for ${viewer.data.name}`}>
+<Layout title={`${viewer.data.name}'s rating for '${rating.movieTitle}'`}>
   {
     movie && (
       <div class="container mx-auto p-4 text-white">
@@ -63,7 +63,6 @@ const isViewer = auth && auth.userId === viewer.data.clerkId;
               height={288}
               width={192}
               class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
-              transition:name={omdb.data.Poster}
             />
             <div class="flex-1">
               <p class="text-lg mb-2">
@@ -96,10 +95,6 @@ const isViewer = auth && auth.userId === viewer.data.clerkId;
   <div
     class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg gap-4"
   >
-    <h1 class="text-4xl font-bold mb-4">{viewer.data.name}</h1>
-    <h2>
-      {rating.movieTitle}
-    </h2>
     {isViewer ? <UpdateRating rating={rating} /> : <p>{rating.score}</p>}
   </div>
 </Layout>
