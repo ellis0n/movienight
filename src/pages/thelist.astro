@@ -1,8 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import RatingsTable from "../components/RatingsTable.astro";
+import { actions } from "astro:actions";
+import { TheList } from "@components/Tables/TheList";
+
+const auth = Astro.locals.auth();
+const clerkId = auth?.userId;
+const result = await Astro.callAction(actions.util.getTheList, {
+  currentUserId: clerkId ?? undefined,
+});
 ---
 
-<Layout title="">
-  <RatingsTable />
+<Layout title="The List">
+  <TheList client:only="react" tableData={result?.data?.tableData ?? []} />
 </Layout>

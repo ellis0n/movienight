@@ -97,7 +97,7 @@ const tableData = (mergedMovies ?? []).map((movie) => ({
     </div>
 
     <div id="tableView" class="hidden">
-      <MoviesTable client:load data={tableData} />
+      <MoviesTable client:only="react" data={tableData} />
     </div>
   </div>
 </Layout>

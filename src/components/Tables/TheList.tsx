@@ -5,18 +5,15 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
 import EditableRatingCell from './EditableRatingCell';
-import '../../styles/ag-grid-custom.css';
 
 
 const TheList = ({ tableData }: { tableData: any[] }) => {
-  // Define helper function before using it
   const calculateAverageRating = (ratings: any[]) => {
     return ratings.length > 0
       ? (ratings.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / ratings.length).toFixed(2)
       : 'N/A';
   };
 
-  // Now we can use it in our state initialization
   const [rowData, setRowData] = useState<any[]>(tableData.map(movie => ({
     ...movie,
     averageRating: calculateAverageRating(movie.ratings)
@@ -42,7 +39,6 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
     );
   };
 
-  // Column Definitions
   const colDefs: ColDef[] = [
     {
       headerName: 'Date',
@@ -54,7 +50,6 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
         return date.toLocaleDateString('en-US');
       },
       tooltipValueGetter: (params) => `Watched on ${params.value}`,
-
     },
     {
       headerName: 'Title',
@@ -66,7 +61,7 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
       debounceMs: 200,
       caseSensitive: false,
     },
-      minWidth: 200, // Set minimum width for title column
+      minWidth: 200, 
       cellRenderer: (params: { value: string; data: { id: any; }; }) => {
         const value = params.value ?? 'N/A';
         return value !== 'N/A' ? (
@@ -80,14 +75,13 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
       tooltipComponent: ImageTooltip,
       tooltipField: 'title',
       tooltipValueGetter: (params) => {
-        // Log the params to see what data is available
         return {
-          title: params.data.title, // Use params.data to access the full row data
+          title: params.data.title,
         };
       },
       tooltipComponentParams: (params: {
         data: any; value: any; 
-}) => {
+      }) => {
         return { title: params.data.title };
       }
     },
@@ -95,37 +89,51 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
       headerName: 'Average',
       field: 'averageRating',
       sortable: true,
-      minWidth: 150, // Set minimum width for average rating column
+      minWidth: 150, 
     },
     ...useMemo(() => {
       const viewerColumns: ColDef[] = [];
       if (rowData.length > 0 && rowData[0].ratings) {
+        // Get all unique viewers
         const viewers = new Set(rowData.flatMap(movie => 
-          movie.ratings.map(rating => rating.viewer.name)
+          movie.ratings.map((rating: { viewer: { name: any; isCurrentUser: boolean; }; }) => ({
+            name: rating.viewer.name,
+            isCurrentUser: rating.viewer.isCurrentUser
+          }))
         ));
+
+        // Convert to array and sort so current user is first
+        const sortedViewers = Array.from(viewers)
+          .filter((v, i, arr) => arr.findIndex(viewer => viewer.name === v.name) === i) // Remove duplicates
+          .sort((a, b) => {
+            if (a.isCurrentUser) return -1;
+            if (b.isCurrentUser) return 1;
+            return 0;
+          });
         
-        viewers.forEach(viewerName => {
+        // Create columns in the sorted order
+        sortedViewers.forEach(viewer => {
           viewerColumns.push({
-            headerName: viewerName,
+            headerName: viewer.name,
             field: `ratings`,
             sortable: true,
             filter: false,
             minWidth: 100,
             cellClass: 'hover:bg-blue-500/10 transition-colors p-1 rounded',
             valueGetter: (params) => {
-              const rating = params.data.ratings.find(r => r.viewer.name === viewerName);
+              const rating = params.data.ratings.find(r => r.viewer.name === viewer.name);
               return rating ? rating.score : null;
             },
             cellRenderer: 'editableRatingCell',
             cellRendererParams: (params: any) => {
-              const rating = params.data.ratings.find(r => r.viewer.name === viewerName);
+              const rating = params.data.ratings.find(r => r.viewer.name === viewer.name);
               return {
                 value: rating?.score,
                 ratingId: rating?.id,
                 viewerId: rating?.viewer?.id,
                 isEditable: rating?.viewer?.isCurrentUser ?? false,
                 onUpdate: (newScore: number) => {
-                  handleRatingUpdate(params.data.id, viewerName, newScore);
+                  handleRatingUpdate(params.data.id, viewer.name, newScore);
                   params.api.refreshCells({ force: true });
                 }
               };
