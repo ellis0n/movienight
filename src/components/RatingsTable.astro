@@ -2,7 +2,11 @@
 import { TheList } from "@components/Tables/TheList";
 import { actions } from "astro:actions";
 
-const result = await Astro.callAction(actions.util.getTheList, {});
+const auth = Astro.locals.auth();
+const clerkId = auth?.userId;
+const result = await Astro.callAction(actions.util.getTheList, {
+  currentUserId: clerkId ?? undefined,
+});
 ---
 
 <div class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl">

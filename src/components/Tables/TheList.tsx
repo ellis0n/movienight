@@ -4,15 +4,44 @@ import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
+import EditableRatingCell from './EditableRatingCell';
+import '../../styles/ag-grid-custom.css';
+
 
 const TheList = ({ tableData }: { tableData: any[] }) => {
-  
-  const [rowData] = useState<any[]>(tableData.map(movie => ({
+  // Define helper function before using it
+  const calculateAverageRating = (ratings: any[]) => {
+    return ratings.length > 0
+      ? (ratings.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / ratings.length).toFixed(2)
+      : 'N/A';
+  };
+
+  // Now we can use it in our state initialization
+  const [rowData, setRowData] = useState<any[]>(tableData.map(movie => ({
     ...movie,
-    averageRating: movie.ratings.length > 0
-      ? (movie.ratings.reduce((sum: any, r: { score: any; }) => sum + r.score, 0) / movie.ratings.length).toFixed(2)
-      : 'N/A'
+    averageRating: calculateAverageRating(movie.ratings)
   })));
+
+  const handleRatingUpdate = (movieId: string, viewerName: string, newScore: number) => {
+    setRowData(prevData => 
+      prevData.map(movie => {
+        if (movie.id === movieId) {
+          const updatedRatings = movie.ratings.map((r: any) => 
+            r.viewer.name === viewerName 
+              ? { ...r, score: newScore }
+              : r
+          );
+          return {
+            ...movie,
+            ratings: updatedRatings,
+            averageRating: calculateAverageRating(updatedRatings)
+          };
+        }
+        return movie;
+      })
+    );
+  };
+
   // Column Definitions
   const colDefs: ColDef[] = [
     {
@@ -71,7 +100,10 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
     ...useMemo(() => {
       const viewerColumns: ColDef[] = [];
       if (rowData.length > 0 && rowData[0].ratings) {
-        const viewers = new Set(rowData.flatMap(movie => movie.ratings.map((rating: { viewer: { name: any; }; }) => rating.viewer.name)));
+        const viewers = new Set(rowData.flatMap(movie => 
+          movie.ratings.map(rating => rating.viewer.name)
+        ));
+        
         viewers.forEach(viewerName => {
           viewerColumns.push({
             headerName: viewerName,
@@ -79,23 +111,24 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
             sortable: true,
             filter: false,
             minWidth: 100,
+            cellClass: 'hover:bg-blue-500/10 transition-colors p-1 rounded',
             valueGetter: (params) => {
               const rating = params.data.ratings.find(r => r.viewer.name === viewerName);
               return rating ? rating.score : null;
             },
-            cellRenderer: (params: { data: { ratings: any[]; }; }) => {
+            cellRenderer: 'editableRatingCell',
+            cellRendererParams: (params: any) => {
               const rating = params.data.ratings.find(r => r.viewer.name === viewerName);
-              if (rating) {
-                return (
-                  <a 
-                    href={`/viewers/${rating.viewer.id}/ratings/${rating.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {rating.score}
-                  </a>
-                );
-              }
-              return '-';
+              return {
+                value: rating?.score,
+                ratingId: rating?.id,
+                viewerId: rating?.viewer?.id,
+                isEditable: rating?.viewer?.isCurrentUser ?? false,
+                onUpdate: (newScore: number) => {
+                  handleRatingUpdate(params.data.id, viewerName, newScore);
+                  params.api.refreshCells({ force: true });
+                }
+              };
             }
           });
         });
@@ -111,13 +144,16 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
   };
 
   return (
-    <div className="ag-theme-quartz-dark w-full h-full">
+    <div className="ag-theme-quartz-dark w-full h-full custom-grid">
       <AgGridReact
         rowData={rowData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
-        domLayout="autoHeight" 
-
+        components={{
+          editableRatingCell: EditableRatingCell
+        }}
+        domLayout="autoHeight"
+        enableCellTextSelection={true}
       />
     </div>
   );

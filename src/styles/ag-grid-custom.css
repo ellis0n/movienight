@@ -1,0 +1,9 @@
+.custom-grid .ag-cell:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  transition: background-color 0.2s ease;
+}
+
+.custom-grid .ag-cell {
+  padding: 0.25rem !important;
+  border-radius: 0.25rem;
+}
