@@ -4,19 +4,12 @@ import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
+import type { Rating } from '../../types/viewers';
 
 interface UserRatingsProps {
-  data: Array<{
-    id: string;
-    movieId: string;
-    score: number;
-    date: string;
-    movieTitle: string;
-    viewerId: string;
-  }>;
-  viewerId: string;
+  data: Rating[];
+  viewerId: number;
 }
-
 const UserRatings: React.FC<UserRatingsProps> = ({ data, viewerId }) => {
   const columns: ColDef[] = useMemo(() => [
     {
@@ -40,23 +33,20 @@ const UserRatings: React.FC<UserRatingsProps> = ({ data, viewerId }) => {
       field: "movieTitle",
       sortable: true,
       filter: true,
-      cellRenderer: (params: { data: { movieId: string }; value: string }) => (
+      cellRenderer: (params: { data: { movieId: number }; value: string }) => (
         <a href={`/movies/${params.data.movieId}`} className="text-blue-400 hover:underline">
           {params.value}
         </a>
       ),
       tooltipComponent: ImageTooltip,
       tooltipField: 'movieTitle',
-      tooltipComponentParams: (params: { data: any; value: any }) => ({
-        title: params.value,
-      }),
     },
     {
       headerName: "Rating",
       field: "score",
       sortable: true,
       filter: true,
-      cellRenderer: (params: { data: { id: string }; value: number }) => (
+      cellRenderer: (params: { data: { id: number }; value: number }) => (
         <a href={`/viewers/${viewerId}/ratings/${params.data.id}`} className="text-blue-400 hover:underline">
           {params.value}
         </a>

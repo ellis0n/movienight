@@ -2,6 +2,21 @@ import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { asc, db, desc, eq, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
 
+interface MovieWithRatings {
+    id: number;
+    _id: string;
+    title: string;
+    date: Date;
+    ratings: {
+        id: number;
+        movieId: number;
+        viewerId: number;
+        score: number;
+        viewerName: string;
+    }[];
+    average: number;
+}
+
 export const movies = {
 
     getAllMovies: defineAction({
@@ -41,16 +56,17 @@ export const movies = {
 
     getMovieById: defineAction({
         input: z.object({
-            movieId: z.string(),
+            movieId: z.number(),
         }),
         handler: async ({ movieId }) => {
             try {
                 const getMovie = await db
                     .select()
                     .from(MoviesDB)
-                    .where(eq(MoviesDB.id, Number(movieId)))
+                    .where(eq(MoviesDB.id, movieId))
                     .run();
-                const {...movie } = getMovie.rows[0];
+                const { ...movie } = getMovie.rows[0];
+                if (!movie) throw new Error('Movie not found');
                 return movie;
             } catch (error) {
                 console.error('Error fetching movie:', error);
@@ -60,61 +76,67 @@ export const movies = {
 
     getMovieWithRatings: defineAction({
         input: z.object({
-            movieId: z.string(),
+            movieId: z.number(),
             sort: z.string().optional(),
         }),
-        handler: async ({ movieId, sort }) => {
+        handler: async ({ movieId, sort }): Promise<{ data: MovieWithRatings | null; error: string | null }> => {
             try {
                 const getMovie = await db
                     .select()
                     .from(MoviesDB)
-                    .where(eq(MoviesDB.id, Number(movieId)))
+                    .where(eq(MoviesDB.id, movieId))
                     .run();
-                const { rows } = getMovie;
-                let movieWithRatings = await Promise.all(
-                    rows.map(async (movie) => {
-                        const ratings = await db
-                            .select()
-                            .from(RatingsDB)
-                            .where(eq(RatingsDB.movieId, Number(movie.id)))
-                            .orderBy(
-                                desc(RatingsDB.score)
-                            )
-                            .run();
-                        
-                        if (sort === 'RATING_SCORE_DESC') {
-                        }
+                
+                if (!getMovie.rows.length) {
+                    return { data: null, error: 'Movie not found' };
+                }
 
-                        return { ...movie, ratings: ratings.rows };
+                const movie = getMovie.rows[0];
+                
+                const ratingsQuery = await db
+                    .select({
+                        id: RatingsDB.id,
+                        movieId: RatingsDB.movieId,
+                        viewerId: RatingsDB.viewerId,
+                        score: RatingsDB.score,
+                        viewerName: ViewersDB.name,
+                        clerkId: ViewersDB.clerkId
                     })
-                );
+                    .from(RatingsDB)
+                    .where(eq(RatingsDB.movieId, movieId))
+                    .innerJoin(ViewersDB, eq(RatingsDB.viewerId, ViewersDB.id))
+                    .run();
 
-                await Promise.all(
-                    movieWithRatings.map(async (movie) => {
-                        await Promise.all(
-                            movie.ratings.map(async (rating) => {
-                                const viewer = await db
-                                    .select()
-                                    .from(ViewersDB)
-                                    .where(eq(ViewersDB.id, Number(rating.viewerId)))
-                                    .run();
-                                rating.viewerName = viewer.rows[0].name;
-                            })
-                        );
-                    })
-                );
+                const ratings = ratingsQuery.rows;
 
+                const average = ratings.length > 0 
+                    ? ratings.reduce((sum, rating) => sum + Number(rating.score), 0) / ratings.length 
+                    : 0;
 
-                // sort by rating score descending
-                // if (sort == 'RATING_SCORE_DESC') {
-                //      movieWithRatings = movieWithRatings.map((movie) => {
-                //         movie.ratings.sort((a: { score: number; }, b: { score: number; }) => b.score - a.score);
-                //     return movie;
-                // });
-                // }
-                return movieWithRatings;
+                if (sort === 'RATING_SCORE_DESC') {
+                    ratings.sort((a, b) => Number(b.score) - Number(a.score));
+                }
+
+                return { 
+                    data: { 
+                        id: Number(movie.id),
+                        _id: String(movie._id),
+                        title: String(movie.title),
+                        ratings: ratings.map(rating => ({
+                            id: Number(rating.id),
+                            movieId: Number(rating.movieId),
+                            viewerId: Number(rating.viewerId),
+                            score: Number(rating.score),
+                            viewerName: String(rating.viewerName)
+                        })),
+                        average,
+                        date: movie.date ? new Date(String(movie.date)) : new Date()
+                    },
+                    error: null
+                };
             } catch (error) {
-                console.error('Error fetching ratings:', error);
+                console.error('Error fetching movie:', error);
+                return { data: null, error: 'An error occurred while fetching the movie' };
             }
         },
     }),

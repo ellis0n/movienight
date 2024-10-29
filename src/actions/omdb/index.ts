@@ -1,49 +1,32 @@
-
-
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { db, sql, eq, ViewersDB, RatingsDB, MoviesDB } from 'astro:db';
 
-const OMDB_URL = 'https://www.omdbapi.com/?apikey='
+const OMDB_API_KEY = import.meta.env.PUBLIC_OMDB_API_KEY;
+
+const OMDB_URL = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}`;
+const searchTitle = '&t=';
+
 
 export const omdb = {
     getOmdbFilm: defineAction({
         input: z.object({
             title: z.string(),
-            apiKey: z.string(),
         }),
-        handler: async ({title, apiKey}) => {
+        handler: async ({title}) => {
             try {
-                const getOMDBFilm = await fetch(`${OMDB_URL}${apiKey}&t=${title}`);
+                const getOMDBFilm = await fetch(`${OMDB_URL}${searchTitle}${title}`);
                 const film = await getOMDBFilm.json();
-                return film;
+                return {
+                    data: film,
+                    error: null
+                };
             } catch (error) {
                 console.error('Error fetching film:', error);
-            }
-        },
-    }),
-
-    getManyOMDBFilms: defineAction({
-        input: z.object({
-            movieQueryParams: z.array(z.object({
-                title: z.string(),
-                movieId: z.string(),
-            })),
-            apiKey: z.string(),
-        }),
-        handler: async ({ 
-            movieQueryParams,
-            apiKey
-        }) => {
-            try {
-                const films = await Promise.all(movieQueryParams.map(async ({ title, movieId }) => {
-                    const response = await fetch(`${OMDB_URL}${apiKey}&t=${encodeURIComponent(title)}`);
-                    const film = await response.json();
-                    return { ...film, movieId, title };
-                }));
-                return films;
-            } catch (error) {
-                console.error('Error fetching films:', error);
+                return {
+                    data: null,
+                    error: error
+                };
             }
         },
     }),

@@ -10,30 +10,26 @@ interface Props {
 
 // @ts-ignore
 import { actions } from "astro:actions";
-import { getCollection } from "astro:content";
-const { id, score, movieId, movieTitle } = Astro.props.rating;
+const { id, score } = Astro.props.rating;
 
 // Movie content
-const Movies = await getCollection("Movies");
-const movie = Movies.find((m) => m.id === movieId.toString());
 
-const rating = await Astro.callAction(actions.ratings.getRatingById, {
-  ratingId: id.toString(),
+const getRating = await Astro.callAction(actions.ratings.getRatingById, {
+  ratingId: id,
 });
 
-if (!rating) return Astro.redirect("/404");
-const result = await Astro.getActionResult(actions.ratings.updateScore);
+const { data: rating, error: ratingError } = getRating;
+
+if (!rating || ratingError) return Astro.redirect("/404");
 ---
 
 <div class="container mx-auto text-white">
-  <h1 class="text-4xl font-bold mb-4">Edit Rating</h1>
   {
-    rating && movie ? (
+    rating ? (
       <>
         <div id="message" class="text-lg mt-6 text-green-500 hidden" />
-        <h2>{movieTitle}</h2>
         <p class="text-lg mt-6">
-          Current Score: <span id="currentScore">{rating.data?.score}</span>
+          Current Score: <span id="currentScore">{rating.score}</span>
         </p>
         <form
           class="mt-6 space-y-4"

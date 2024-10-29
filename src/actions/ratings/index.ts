@@ -6,7 +6,7 @@ export const ratings = {
 
     getViewerRatings: defineAction({
         input: z.object({
-        viewerId: z.string(),
+        viewerId: z.number(),
         }),
         handler: async ({ viewerId }) => {
             try {
@@ -25,7 +25,7 @@ export const ratings = {
 
     getAllRatingsForMovie: defineAction({
         input: z.object({
-        movieId: z.string(),
+        movieId: z.number(),
         }),
         handler: async ({ movieId }) => {
         try {
@@ -45,16 +45,17 @@ export const ratings = {
 
     getRatingById: defineAction({
         input: z.object({
-            ratingId: z.string(),
+            ratingId: z.number(),
         }),
         handler: async ({ ratingId }) => {
         try {
             const getRating = await db
             .select()
             .from(RatingsDB)
-            .where(eq(RatingsDB.id, Number(ratingId)))
+            .where(eq(RatingsDB.id, ratingId))
                 .run();
-            const {...rating } = getRating.rows[0];
+            const rating = getRating.rows[0];
+            if (!rating) throw new Error('Rating not found');
             return rating;
         } catch (error) {
             console.error('Error fetching rating:', error);
@@ -72,7 +73,7 @@ export const ratings = {
             try {
                 const ratings = await db.update(RatingsDB)
                     .set({ score })
-                    .where(eq(RatingsDB.id, Number(id)))
+                    .where(eq(RatingsDB.id, id))
                     .run();
 
                 return {

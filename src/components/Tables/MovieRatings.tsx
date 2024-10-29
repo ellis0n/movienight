@@ -5,11 +5,17 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 interface MovieRatingsProps {
-  data: any[];
-  movieId: string;
+  data: {
+    id: number;
+    movieId: number;
+    viewerId: number;
+    score: number;
+    viewerName: string;
+  }[];
 }
 
-const MovieRatings: React.FC<MovieRatingsProps> = ({ data, movieId }) => {
+const MovieRatings: React.FC<MovieRatingsProps> = ({ data }) => {
+  console.log(data);
   const columns: ColDef[] = useMemo(() => [
     {
       headerName: "Viewer",
@@ -17,9 +23,11 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({ data, movieId }) => {
       sortable: true,
       filter: true,
       cellRenderer: (params: { data: { viewerId: any }; value: any }) => (
-        <a href={`/viewers/${params.data.viewerId}`} className="text-blue-400 hover:underline">
-          {params.value}
-        </a>
+        <>
+          <a href={`/viewers/${params.data.viewerId}`} className="text-blue-400 hover:underline">
+            {params.value}
+          </a>
+        </>
       ),
     },
     {
@@ -33,7 +41,7 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({ data, movieId }) => {
         </a>
       ),
     },
-  ], [movieId]);
+  ], []);
 
   const defaultColDef: ColDef = {
     flex: 1,

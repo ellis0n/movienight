@@ -1,12 +1,13 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { db, sql, eq, ViewersDB, RatingsDB, MoviesDB } from 'astro:db';
+import type { ViewerResponse, Rating } from '../../types/viewers';
 
 export const viewers = {
 
     getViewerById: defineAction({
         input: z.object({
-            viewerId: z.string(),
+            viewerId: z.number(),
         }),
         handler: async ({ viewerId }) => {
             try {
@@ -16,7 +17,8 @@ export const viewers = {
                     .where(eq(ViewersDB.id, Number(viewerId))
                     )
                     .run();
-                const { ...user } = getUser.rows[0];
+                const user = getUser.rows[0];
+                if (!user) throw new Error('User not found');
                 return user;
             } catch (error) {
                 console.error('Error fetching user:', error);
@@ -76,14 +78,10 @@ export const viewers = {
 
     getViewerWithRatingsAndMovies: defineAction({
         input: z.object({
-            viewerId: z.string(),
+            viewerId: z.number(),
             sort: z.string().optional(),
         }),
-        handler: async ({ viewerId, sort }) => {
-            // we take the viewerId and get the viewer, all the ratings for that viewer
-            // then we get all the movies for each rating
-            // then we return the viewer with all the ratings and movies
-            
+        handler: async ({ viewerId, sort }): Promise<ViewerResponse> => {
             try {
                 const viewer = await db
                     .select()
@@ -95,25 +93,64 @@ export const viewers = {
                     .from(RatingsDB)
                     .where(eq(RatingsDB.viewerId, Number(viewerId)))
                     .run();
-                const viewerWithRatings: { viewerId: typeof viewerId, ratings: typeof ratings.rows, movies: any[], [key: string]: any } = { ...viewer.rows[0], viewerId, ratings: ratings.rows, movies: [] };
-                const movies = await Promise.all(
-                    viewerWithRatings.ratings.map(async (rating) => {
-                        const movie = await db
-                            .select()
-                            .from(MoviesDB)
-                            .where(eq(MoviesDB.id, Number(rating.movieId)))
-                            .run();
-                        return movie.rows[0];
-                    })
-                );
-                viewerWithRatings.movies = movies;
-                // sort by total ratings descending
-                if (sort === 'TOTAL_RATINGS_DESC') {
-                    viewerWithRatings.ratings.sort((a, b) => (Array.isArray(b.ratings) ? b.ratings.length : 0) - (Array.isArray(a.ratings) ? a.ratings.length : 0));
+
+                // Get all movies for the ratings in a single query
+                const movieIds = ratings.rows.map(rating => rating.movieId);
+                const movies = await db
+                    .select()
+                    .from(MoviesDB)
+                    .where(sql`${MoviesDB.id} IN ${movieIds}`)
+                    .run();
+
+                // Create a map of movies for easier lookup
+                const movieMap = new Map(movies.rows.map(movie => [movie.id, movie]));
+
+                // Combine ratings with movie data
+                const ratingsWithMovies: Rating[] = ratings.rows.map(rating => {
+                    const movie = movieMap.get(rating.movieId);
+                    return {
+                        id: Number(rating.id),
+                        _id: String(rating._id),
+                        movieId: Number(rating.movieId),
+                        viewerId: Number(viewerId),
+                        score: Number(rating.score),
+                        movieTitle: String(movie?.title || 'Unknown Movie'),
+                        date: movie?.date ? new Date(String(movie.date)) : null,
+                        clerkId: String(viewer.rows[0].clerkId),
+                    };
+                });
+
+                if (sort === 'RATING_SCORE_DESC') {
+                    ratingsWithMovies.sort((a, b) => Number(b.score) - Number(a.score));
                 }
-                return viewerWithRatings;
+
+                if (!viewer.rows[0]) throw new Error('Viewer not found');
+                
+                return {
+                    data: {
+                        data: {
+                            id: Number(viewer.rows[0].id),
+                            _id: String(viewer.rows[0]._id),
+                            name: String(viewer.rows[0].name),
+                            clerkId: String(viewer.rows[0].clerkId),
+                            discordId: String(viewer.rows[0].discordId ?? null),
+                            discordUsername: String(viewer.rows[0].discordUsername ?? null),
+                            color: String(viewer.rows[0].color),
+                            avatar: String(viewer.rows[0].avatar ?? ''),
+                            isAdmin: Boolean(viewer.rows[0].isAdmin),
+                            bio: String(viewer.rows[0].bio) ?? undefined,
+                            ratings: ratingsWithMovies
+                        },
+                        error: null
+                    }
+                };
             } catch (error) {
-                console.error('Error fetching viewer:', error);
+                return {
+                    data: {
+                        data: null,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    }
+                };
             }
         },
     }),

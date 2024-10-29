@@ -1,55 +1,67 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "@layouts/Layout.astro";
 import { actions } from "astro:actions";
 import { Image } from "astro:assets";
 import UpdateRating from "@components/UpdateRating.astro";
 
-const getRating = await Astro.callAction(actions.ratings.getRatingById, {
-  ratingId: Astro.params.ratingId as string,
-});
-
-const { data: ratingData, error: ratingError } = getRating;
-
-let movie, omdb;
-
-if (!ratingError && ratingData) {
-  const getMovie = await Astro.callAction(actions.movies.getMovieById, {
-    movieId: String(ratingData.movieId ?? ""),
-  });
-
-  const { data: movieData, error: movieError } = getMovie;
-
-  if (!movieError) {
-    movie = movieData;
-    if (movie) {
-      omdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
-        title: String(movie.title),
-        apiKey: import.meta.env.PUBLIC_OMDB_API_KEY as string,
-      });
-    }
-  } else {
-    console.error("Error fetching movie:", movieError);
-  }
-} else {
-  console.error("Error fetching rating:", ratingError);
-}
-
+const viewerId = Number(Astro.params.id);
+const ratingId = Number(Astro.params.ratingId);
 const auth = Astro.locals.auth();
 
-const viewers = await getCollection("Viewers");
+// Get viewer data
+const getViewer = await Astro.callAction(actions.viewers.getViewerById, {
+  viewerId,
+});
 
-const viewer = viewers.find((v) => v.id === Astro.params.id);
-const rating = viewer?.data.ratings.find(
-  (r) => r.id === Number(Astro.params.ratingId)
-);
+const { data: viewer, error: viewerError } = getViewer;
 
-if (!viewer || !rating) return Astro.redirect("/404");
+if (viewerError || !viewer) {
+  console.error("Error fetching viewer:", viewerError);
+  return Astro.redirect("/404");
+}
 
-const isViewer = auth && auth.userId === viewer.data.clerkId;
+// Get rating data
+const getRating = await Astro.callAction(actions.ratings.getRatingById, {
+  ratingId,
+});
+
+const { data: rating, error: ratingError } = getRating;
+
+if (ratingError || !rating) {
+  console.error("Error fetching rating:", ratingError);
+  return Astro.redirect("/404");
+}
+
+// Get movie data
+const getMovie = await Astro.callAction(actions.movies.getMovieById, {
+  movieId: Number(rating.movieId),
+});
+
+const { data: movie, error: movieError } = getMovie;
+
+if (movieError) {
+  console.error("Error fetching movie:", movieError);
+}
+
+// Get OMDB data if movie exists
+let omdb;
+if (movie?.title) {
+  const getOmdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
+    title: String(movie.title),
+  });
+  const { data: omdbData, error: omdbError } = getOmdb;
+
+  if (omdbError) {
+    console.error("Error fetching OMDB data:", omdbError);
+  } else {
+    omdb = omdbData?.data;
+  }
+}
+
+const isViewer = auth && auth.userId === viewer.clerkId;
 ---
 
-<Layout title={`${viewer.data.name}'s rating for '${rating.movieTitle}'`}>
+<Layout title={`${viewer.name}'s rating for '${rating.movieTitle}'`}>
   {
     movie && (
       <div class="container mx-auto p-4 text-white">
@@ -58,33 +70,33 @@ const isViewer = auth && auth.userId === viewer.data.clerkId;
         {omdb && (
           <div class="flex flex-col md:flex-row bg-gray-800 p-4 rounded-lg shadow-lg">
             <Image
-              src={omdb.data.Poster}
-              alt={omdb.data.Title}
+              src={omdb.Poster}
+              alt={omdb.Title}
               height={288}
               width={192}
               class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
             />
             <div class="flex-1">
               <p class="text-lg mb-2">
-                <span class="font-bold">Year: </span> {omdb.data.Year}
+                <span class="font-bold">Year: </span> {omdb.Year}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Rated: </span> {omdb.data.Rated}
+                <span class="font-bold">Rated: </span> {omdb.Rated}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Runtime: </span> {omdb.data.Runtime}
+                <span class="font-bold">Runtime: </span> {omdb.Runtime}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Genre: </span> {omdb.data.Genre}
+                <span class="font-bold">Genre: </span> {omdb.Genre}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Director: </span> {omdb.data.Director}
+                <span class="font-bold">Director: </span> {omdb.Director}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Actors: </span> {omdb.data.Actors}
+                <span class="font-bold">Actors: </span> {omdb.Actors}
               </p>
               <p class="text-lg mb-2">
-                <span class="font-bold">Plot: </span> {omdb.data.Plot}
+                <span class="font-bold">Plot: </span> {omdb.Plot}
               </p>
             </div>
           </div>
@@ -95,6 +107,27 @@ const isViewer = auth && auth.userId === viewer.data.clerkId;
   <div
     class="container mx-auto p-6 text-white bg-gray-900 rounded-lg shadow-lg gap-4"
   >
-    {isViewer ? <UpdateRating rating={rating} /> : <p>{rating.score}</p>}
+    {
+      isViewer ? (
+        <div class="flex flex-col">
+          <h2 class="text-2xl font-bold mb-4">Your rating:</h2>
+          <UpdateRating
+            rating={{
+              id: Number(rating.id),
+              movieId: Number(rating.movieId),
+              score: Number(rating.score),
+              movieTitle: String(rating.movieTitle),
+            }}
+          />
+        </div>
+      ) : (
+        <div class="flex flex-col items-center justify-center">
+          <h2 class="text-2xl font-bold mb-4">
+            {viewer.name}'s rating for {rating.movieTitle}
+          </h2>
+          <p class="text-2xl font-bold">{rating.score}</p>
+        </div>
+      )
+    }
   </div>
 </Layout>

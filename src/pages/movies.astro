@@ -9,46 +9,29 @@ const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
   sort: "TITLE_ASC",
 });
 
-const { data: movies, error: moviesError } = getMovies;
+const { data: movies, error } = getMovies;
 
-if (moviesError) {
-  console.error("Error fetching movies:", moviesError);
-  return Astro.redirect("/404");
+if (error || !movies) {
+  console.error("Error fetching movies:", error);
 }
 
-const getOMDB = await Astro.callAction(actions.omdb.getManyOMDBFilms, {
-  apiKey: import.meta.env.PUBLIC_OMDB_API_KEY,
-  movieQueryParams:
-    movies?.map((movie) => ({
-      movieId: String(movie.id),
-      title: String(movie.title),
-    })) ?? [],
-});
-
-const { data: moviesWithOmdb, error: omdbError } = getOMDB;
-
-if (omdbError) {
-  console.error("Error fetching OMDB data:", omdbError);
-}
-
-// Merge OMDB data with our movie data
-const mergedMovies =
-  movies?.map((movie) => {
-    const omdbData = moviesWithOmdb?.find(
-      (omdbMovie) => omdbMovie.movieId === String(movie.id)
-    );
+const moviesWithOmdb = await Promise.all(
+  (movies ?? []).map(async (movie) => {
+    const getOMDBFilm = await Astro.callAction(actions.omdb.getOmdbFilm, {
+      title: String(movie.title ?? ""),
+    });
+    const { data: omdbData, error: omdbError } = getOMDBFilm;
+    if (omdbError || !omdbData) {
+      console.error("Error fetching OMDB film:", omdbError);
+    }
     return {
-      ...movie,
-      poster: omdbData?.Poster || placeholder,
+      id: Number(movie.id),
+      title: String(movie.title),
+      date: String(movie.date),
+      poster: omdbData?.data?.Poster || placeholder,
     };
-  }) ?? [];
-const tableData = (mergedMovies ?? []).map((movie) => ({
-  id: movie.id,
-  title: movie.title,
-  date: movie.date ? new Date(movie.date).toISOString().split("T")[0] : "N/A",
-  average: typeof movie.average === "number" ? movie.average.toFixed(2) : "N/A",
-  poster: movie.poster,
-}));
+  })
+);
 ---
 
 <Layout title="Movies">
@@ -70,7 +53,7 @@ const tableData = (mergedMovies ?? []).map((movie) => ({
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
     >
       {
-        mergedMovies.map((movie) => (
+        moviesWithOmdb.map((movie) => (
           <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
             <a href={`/movies/${movie.id}`} class="block">
               <Image
@@ -84,10 +67,10 @@ const tableData = (mergedMovies ?? []).map((movie) => ({
               <div class="p-4">
                 <h2 class="text-xl font-semibold mb-2">{movie.title}</h2>
                 <p class="text-gray-400">
-                  Average Rating: {movie.average.toFixed(2)}
-                </p>
-                <p class="text-gray-400">
-                  Date: {new Date(movie.date).toLocaleDateString()}
+                  Date:{" "}
+                  {movie.date
+                    ? new Date(movie.date.toString()).toLocaleDateString()
+                    : "No date"}
                 </p>
               </div>
             </a>
@@ -97,7 +80,7 @@ const tableData = (mergedMovies ?? []).map((movie) => ({
     </div>
 
     <div id="tableView" class="hidden">
-      <MoviesTable client:only="react" data={tableData} />
+      <MoviesTable client:only="react" data={moviesWithOmdb} />
     </div>
   </div>
 </Layout>

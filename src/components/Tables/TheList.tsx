@@ -121,12 +121,12 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
             minWidth: 100,
             cellClass: 'hover:bg-blue-500/10 transition-colors p-1 rounded',
             valueGetter: (params) => {
-              const rating = params.data.ratings.find(r => r.viewer.name === viewer.name);
+              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => r.viewer.name === viewer.name);
               return rating ? rating.score : null;
             },
             cellRenderer: 'editableRatingCell',
             cellRendererParams: (params: any) => {
-              const rating = params.data.ratings.find(r => r.viewer.name === viewer.name);
+              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => r.viewer.name === viewer.name);
               return {
                 value: rating?.score,
                 ratingId: rating?.id,

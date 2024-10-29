@@ -9,8 +9,7 @@ interface MoviesProps {
     id: number;
     title: string;
     date: string;
-    average: string;
-    viewers?: { id: string; name: string }[];
+    viewers?: { id: number; name: string }[];
   }[];
 }
 
