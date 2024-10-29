@@ -2,13 +2,16 @@ import { db, MoviesDB, RatingsDB, ViewersDB } from 'astro:db';
 import { moviesData, ratingsData, viewersData } from './data';
 
 export default async function () {
-	// First insert viewers (no foreign key dependencies)
+
+	// Clear the database
+	await db.delete(RatingsDB).run();
+	await db.delete(MoviesDB).run();
+	await db.delete(ViewersDB).run();
+
 	await db.insert(ViewersDB).values(viewersData);
 	
-	// Then insert movies (depends on viewers for pickedBy)
 	await db.insert(MoviesDB).values(moviesData);
 	
-	// Finally insert ratings (depends on both movies and viewers)
 	await db.insert(RatingsDB).values(ratingsData);
 }
 

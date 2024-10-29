@@ -271,23 +271,27 @@ export const ratingsData = [
   { _id: uuidv4(), id: 227, movieId: 29, viewerId: 6, score: 6.4},
   { _id: uuidv4(), id: 228, movieId: 29, viewerId: 10, score: 6.5},
   { _id: uuidv4(), id: 229, movieId: 29, viewerId: 11, score: 7 },
-  { _id: uuidv4(), id: 230, movieId: 30, viewerId: 1, score: 6.5},
-  { _id: uuidv4(), id: 231, movieId: 30, viewerId: 2, score: 7.0},
-  { _id: uuidv4(), id: 232, movieId: 30, viewerId: 3, score: 6.8},
-  { _id: uuidv4(), id: 233, movieId: 30, viewerId: 4, score: 7.2},
-  { _id: uuidv4(), id: 234, movieId: 30, viewerId: 5, score: 6.9},
-  { _id: uuidv4(), id: 235, movieId: 30, viewerId: 6, score: 7.1},
-  { _id: uuidv4(), id: 236, movieId: 30, viewerId: 7, score: 6.7},
-  { _id: uuidv4(), id: 237, movieId: 30, viewerId: 8, score: 7.3},
-  { _id: uuidv4(), id: 238, movieId: 31, viewerId: 1, score: 8.4}, // Walt
-  { _id: uuidv4(), id: 239, movieId: 31, viewerId: 2, score: 9.6}, // Jesse
-  { _id: uuidv4(), id: 240, movieId: 31, viewerId: 3, score: 8.0}, // Kieran
-  { _id: uuidv4(), id: 241, movieId: 31, viewerId: 4, score: 8.2}, // Nicole
-  { _id: uuidv4(), id: 242, movieId: 31, viewerId: 5, score: 10.0}, // Mike
-  { _id: uuidv4(), id: 243, movieId: 31, viewerId: 6, score: 9.0}, // Jay
-  { _id: uuidv4(), id: 244, movieId: 31, viewerId: 12, score: 10.0}, // Glen
-  { _id: uuidv4(), id: 245, movieId: 31, viewerId: 10, score: 5.0}, // Sam
-  { _id: uuidv4(), id: 246, movieId: 31, viewerId: 11, score: 5.0}, // Garrett
+  { _id: uuidv4(), id: 230, movieId: 30, viewerId: 1, score: 8.4 }, // Walt
+  { _id: uuidv4(), id: 231, movieId: 30, viewerId: 2, score: 9.6 }, // Jesse
+  { _id: uuidv4(), id: 232, movieId: 30, viewerId: 3, score: 8.0 }, // Kieran
+  { _id: uuidv4(), id: 233, movieId: 30, viewerId: 4, score: 8.2 }, // Nicole
+  { _id: uuidv4(), id: 234, movieId: 30, viewerId: 5, score: 10.0 }, // Mike
+  { _id: uuidv4(), id: 235, movieId: 30, viewerId: 6, score: 9.0 }, // Jay
+  { _id: uuidv4(), id: 236, movieId: 30, viewerId: 12, score: 10.0 }, // Glen
+  { _id: uuidv4(), id: 237, movieId: 30, viewerId: 10, score: 5.0 }, // Sam
+  { _id: uuidv4(), id: 238, movieId: 30, viewerId: 11, score: 5.0 }, // Garrett
+  { _id: uuidv4(), id: 239, movieId: 31, viewerId: 4, score: 8.5 }, // Nicole
+  { _id: uuidv4(), id: 240, movieId: 31, viewerId: 2, score: 7.2 }, // Jesse
+  { _id: uuidv4(), id: 241, movieId: 31, viewerId: 3, score: 10.0 }, // Kieran
+  { _id: uuidv4(), id: 242, movieId: 31, viewerId: 5, score: 9.3 }, // Mike
+  { _id: uuidv4(), id: 243, movieId: 31, viewerId: 6, score: 6.0 }, // Jay
+  { _id: uuidv4(), id: 244, movieId: 31, viewerId: 8, score: 6.1 }, // Maggie
+  { _id: uuidv4(), id: 245, movieId: 31, viewerId: 12, score: 9.0 }, // Glen
+  { _id: uuidv4(), id: 246, movieId: 31, viewerId: 7, score: 9.0 }, // Mitch
+  { _id: uuidv4(), id: 247, movieId: 31, viewerId: 10, score: 4.8 }, // Sam
+  { _id: uuidv4(), id: 248, movieId: 31, viewerId: 11, score: 7.5 }, // Garrett
+  { _id: uuidv4(), id: 249, movieId: 31, viewerId: 13, score: 7.0 } // Coob
+  
 ];
 
 export const viewersData = [
