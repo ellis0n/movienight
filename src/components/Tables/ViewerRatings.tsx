@@ -1,16 +1,37 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
+import EditableRatingCell from './EditableRatingCell';
 import type { Rating } from '../../types/viewers';
 
-interface UserRatingsProps {
+interface ViewerRatingsProps {
   data: Rating[];
   viewerId: number;
+  isCurrentViewer?: boolean;
+  isAdmin?: boolean;
 }
-const UserRatings: React.FC<UserRatingsProps> = ({ data, viewerId }) => {
+
+const ViewerRatings: React.FC<ViewerRatingsProps> = ({ 
+  data: initialData, 
+  viewerId,
+  isCurrentViewer = false,
+  isAdmin = false
+}) => {
+  const [data, setData] = useState(initialData);
+
+  const handleRatingUpdate = (ratingId: number, newScore: number) => {
+    setData(prevData => 
+      prevData.map(rating => 
+        rating.id === ratingId 
+          ? { ...rating, score: newScore }
+          : rating
+      )
+    );
+  };
+
   const columns: ColDef[] = useMemo(() => [
     {
       headerName: "Date",
@@ -47,12 +68,15 @@ const UserRatings: React.FC<UserRatingsProps> = ({ data, viewerId }) => {
       sortable: true,
       filter: true,
       cellRenderer: (params: { data: { id: number }; value: number }) => (
-        <a href={`/viewers/${viewerId}/ratings/${params.data.id}`} className="text-blue-400 hover:underline">
-          {params.value}
-        </a>
+        <EditableRatingCell
+          value={params.value}
+          ratingId={params.data.id}
+          isEditable={isCurrentViewer || isAdmin}
+          onUpdate={(newValue) => handleRatingUpdate(params.data.id, newValue)}
+        />
       ),
     },
-  ], [viewerId]);
+  ], [viewerId, isCurrentViewer, isAdmin]);
 
   const defaultColDef: ColDef = {
     flex: 1,
@@ -68,9 +92,12 @@ const UserRatings: React.FC<UserRatingsProps> = ({ data, viewerId }) => {
         defaultColDef={defaultColDef}
         domLayout="autoHeight"
         enableCellTextSelection={true}
+        components={{
+          editableRatingCell: EditableRatingCell
+        }}
       />
     </div>
   );
 };
 
-export default UserRatings;
+export default ViewerRatings;

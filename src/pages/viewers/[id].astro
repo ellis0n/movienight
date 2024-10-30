@@ -1,8 +1,10 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { actions } from "astro:actions";
-import UserRatings from "@components/Tables/UserRatings";
+import ViewerRatings from "@components/Tables/ViewerRatings";
 import type { ViewerResponse } from "../../types/viewers";
+import placeholder from "../../assets/placeholdermovie.png";
+import { Image } from "astro:assets";
 
 const id = Astro.params.id;
 const numberId = Number(id);
@@ -23,6 +25,7 @@ const ratings = viewer?.ratings;
 const ratingsWithMovies = ratings || [];
 const isViewer =
   auth && ratings?.[0]?.clerkId && auth.userId === ratings[0].clerkId;
+// console.log(viewer.pickedList);
 ---
 
 <Layout title={`${viewer?.name}'s Profile`}>
@@ -66,10 +69,52 @@ const isViewer =
         </div>
       </div>
     </div>
-
+    {
+      viewer?.pickedList && viewer.pickedList.length > 0 && (
+        <div class="bg-gray-800 rounded-lg p-6 mt-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Picked Films</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {viewer.pickedList.map((movie) => (
+              <div class="relative group">
+                <a href={`/movies/${movie.id}`} class="block">
+                  <div class="aspect-[2/3] relative overflow-hidden rounded-lg">
+                    <Image
+                      src={movie.poster || placeholder}
+                      alt={movie.title}
+                      height={288}
+                      width={192}
+                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      transition:name={`poster-${movie.id}`}
+                    />
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-opacity duration-300">
+                      <div class="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white p-2 text-center">
+                        <h3 class="text-lg font-semibold mb-2">
+                          {movie.title}
+                        </h3>
+                        <p class="text-sm">
+                          {movie.date
+                            ? new Date(movie.date).toLocaleDateString()
+                            : "No date"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
     <div class="bg-gray-800 rounded-lg p-6">
       <h2 class="text-2xl font-bold text-white mb-4">Ratings History</h2>
-      <UserRatings client:load data={ratingsWithMovies} viewerId={numberId} />
+      <ViewerRatings
+        client:load
+        data={ratingsWithMovies}
+        viewerId={numberId}
+        isCurrentViewer={!!isViewer}
+        isAdmin={viewer?.isAdmin ?? false}
+      />
     </div>
   </div>
 </Layout>

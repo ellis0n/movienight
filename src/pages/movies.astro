@@ -62,7 +62,7 @@ const moviesWithOmdb = await Promise.all(
                 height={288}
                 width={192}
                 class="w-full h-64 object-cover"
-                transition:name={`${movie.poster}`}
+                transition:name={`poster-${movie.id}`}
               />
               <div class="p-4">
                 <h2 class="text-xl font-semibold mb-2">{movie.title}</h2>
@@ -78,36 +78,5 @@ const moviesWithOmdb = await Promise.all(
         ))
       }
     </div>
-
-    <div id="tableView" class="hidden">
-      <MoviesTable client:only="react" data={moviesWithOmdb} />
-    </div>
   </div>
 </Layout>
-
-<script>
-  document.addEventListener("astro:page-load", () => {
-    const viewToggle = document.getElementById("viewToggle");
-    const cardView = document.getElementById("cardView");
-    const tableView = document.getElementById("tableView");
-
-    const toggleView = () => {
-      cardView?.classList.toggle("hidden");
-      tableView?.classList.toggle("hidden");
-    };
-
-    const attachEventListeners = () => {
-      viewToggle?.addEventListener("click", toggleView);
-    };
-
-    // Attach event listeners initially
-    attachEventListeners();
-
-    // Use MutationObserver to reattach event listeners if elements are replaced
-    const observer = new MutationObserver(() => {
-      attachEventListeners();
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
-</script>

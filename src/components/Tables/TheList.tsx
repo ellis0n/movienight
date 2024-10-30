@@ -6,8 +6,12 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
 import EditableRatingCell from './EditableRatingCell';
 
+interface TheListProps {
+  tableData: any[];
+  isCurrentViewer: boolean;
+}
 
-const TheList = ({ tableData }: { tableData: any[] }) => {
+const TheList = ({ tableData, isCurrentViewer }: TheListProps) => {
   const calculateAverageRating = (ratings: any[]) => {
     return ratings.length > 0
       ? (ratings.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / ratings.length).toFixed(2)
@@ -86,10 +90,10 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
       }
     },
     {
-      headerName: 'Average',
+      headerName: 'Avg',
       field: 'averageRating',
       sortable: true,
-      minWidth: 150, 
+      minWidth: 65, 
     },
     ...useMemo(() => {
       const viewerColumns: ColDef[] = [];
@@ -124,19 +128,19 @@ const TheList = ({ tableData }: { tableData: any[] }) => {
               const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => r.viewer.name === viewer.name);
               return rating ? rating.score : null;
             },
-            cellRenderer: 'editableRatingCell',
-            cellRendererParams: (params: any) => {
-              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => r.viewer.name === viewer.name);
-              return {
-                value: rating?.score,
-                ratingId: rating?.id,
-                viewerId: rating?.viewer?.id,
-                isEditable: rating?.viewer?.isCurrentUser ?? false,
-                onUpdate: (newScore: number) => {
-                  handleRatingUpdate(params.data.id, viewer.name, newScore);
-                  params.api.refreshCells({ force: true });
-                }
-              };
+            cellRenderer: (params: { data: { ratings: any[]; id: string; }; }) => {
+              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => 
+                r.viewer.name === viewer.name
+              );
+              
+              return (
+                <EditableRatingCell
+                  value={rating?.score ?? null}
+                  ratingId={rating?.id ?? ''}
+                  isEditable={isCurrentViewer}  // Pass the computed value
+                  onUpdate={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
+                />
+              );
             }
           });
         });

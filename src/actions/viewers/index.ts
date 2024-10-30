@@ -3,6 +3,10 @@ import { z } from 'astro:schema';
 import { db, sql, eq, ViewersDB, RatingsDB, MoviesDB } from 'astro:db';
 import type { ViewerResponse, Rating } from '../../types/viewers';
 
+const PUBLIC_OMDB_API_KEY = import.meta.env.PUBLIC_OMDB_API_KEY;
+const OMDB_URL = `https://www.omdbapi.com/?apikey=${PUBLIC_OMDB_API_KEY}`;
+console.log(OMDB_URL);
+
 export const viewers = {
 
     getViewerById: defineAction({
@@ -88,10 +92,18 @@ export const viewers = {
                     .from(ViewersDB)
                     .where(eq(ViewersDB.id, Number(viewerId)))
                     .run();
+
                 const ratings = await db
                     .select()
                     .from(RatingsDB)
                     .where(eq(RatingsDB.viewerId, Number(viewerId)))
+                    .run();
+
+                // Get picked movies
+                const pickedMovies = await db
+                    .select()
+                    .from(MoviesDB)
+                    .where(eq(MoviesDB.pickedBy, Number(viewerId)))
                     .run();
 
                 // Get all movies for the ratings in a single query
@@ -102,10 +114,8 @@ export const viewers = {
                     .where(sql`${MoviesDB.id} IN ${movieIds}`)
                     .run();
 
-                // Create a map of movies for easier lookup
                 const movieMap = new Map(movies.rows.map(movie => [movie.id, movie]));
 
-                // Combine ratings with movie data
                 const ratingsWithMovies: Rating[] = ratings.rows.map(rating => {
                     const movie = movieMap.get(rating.movieId);
                     return {
@@ -126,6 +136,29 @@ export const viewers = {
 
                 if (!viewer.rows[0]) throw new Error('Viewer not found');
                 
+                const pickedMoviesWithPosters = await Promise.all(pickedMovies.rows.map(async (movie) => {
+                    try {
+                        const response = await fetch(`${OMDB_URL}&t=${encodeURIComponent(String(movie.title))}`);
+                        const omdbData = await response.json();
+                        return {
+                            id: Number(movie.id),
+                            _id: String(movie._id),
+                            title: String(movie.title),
+                            date: movie.date ? new Date(String(movie.date)) : null,
+                            poster: omdbData.Response === 'True' ? omdbData.Poster : null
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching OMDB data for ${movie.title}:`, error);
+                        return {
+                            id: Number(movie.id),
+                            _id: String(movie._id),
+                            title: String(movie.title),
+                            date: movie.date ? new Date(String(movie.date)) : null,
+                            poster: null
+                        };
+                    }
+                }));
+
                 return {
                     data: {
                         data: {
@@ -139,7 +172,8 @@ export const viewers = {
                             avatar: String(viewer.rows[0].avatar ?? ''),
                             isAdmin: Boolean(viewer.rows[0].isAdmin),
                             bio: String(viewer.rows[0].bio) ?? undefined,
-                            ratings: ratingsWithMovies
+                            ratings: ratingsWithMovies,
+                            pickedList: pickedMoviesWithPosters
                         },
                         error: null
                     }

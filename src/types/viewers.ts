@@ -21,6 +21,13 @@ export interface Viewer {
   isAdmin: boolean;
   bio?: string;
   ratings: Rating[];
+  pickedList: {
+    id: number;
+    _id: string;
+    title: string;
+    date: Date | null;
+    poster: string | null;
+  }[];
 }
 
 export interface ViewerResponse {

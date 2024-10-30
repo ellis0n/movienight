@@ -11,5 +11,9 @@ const result = await Astro.callAction(actions.util.getTheList, {
 ---
 
 <Layout title="The List">
-  <TheList client:only="react" tableData={result?.data?.tableData ?? []} />
+  <TheList
+    client:only="react"
+    tableData={result?.data?.tableData ?? []}
+    isCurrentViewer={!!auth?.userId}
+  />
 </Layout>

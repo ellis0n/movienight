@@ -11,5 +11,9 @@ const result = await Astro.callAction(actions.util.getTheList, {
 
 <div class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl">
   <h1 class="text-2xl font-bold mb-4">The List</h1>
-  <TheList client:load tableData={result?.data?.tableData ?? []} />
+  <TheList
+    client:load
+    tableData={result?.data?.tableData ?? []}
+    isCurrentViewer={!!auth?.userId}
+  />
 </div>

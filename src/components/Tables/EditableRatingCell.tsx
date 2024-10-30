@@ -3,8 +3,7 @@ import { actions } from 'astro:actions';
 
 interface EditableRatingCellProps {
     value: number | null;
-    ratingId: string;
-    viewerId: string;
+    ratingId: number;
     isEditable: boolean;
     onUpdate: (newValue: number) => void;
 }
@@ -12,7 +11,6 @@ interface EditableRatingCellProps {
 const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
     value,
     ratingId,
-    viewerId,
     isEditable,
     onUpdate
 }) => {
@@ -58,15 +56,15 @@ const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
         }
     }, [isEditing]);
 
-    if (!value) return <span>-</span>;
+    if (!value) return <span className="block text-center">-</span>;
     
     if (!isEditable) {
-        return <span className="hover:bg-blue-500/10 transition-colors p-1 rounded">{value}</span>;
+        return <span className="block text-center">{value}</span>;
     }
 
     if (isEditing) {
         return (
-            <form onSubmit={handleSubmit} className="flex items-center space-x-1">
+            <form onSubmit={handleSubmit} className="flex justify-center">
                 <input
                     ref={inputRef}
                     type="number"
@@ -76,7 +74,7 @@ const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
                     value={newValue ?? ''}
                     onChange={(e) => setNewValue(Number(e.target.value))}
                     onBlur={() => handleSubmit()}
-                    className="w-16 px-1 py-0.5 text-sm bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
+                    className="w-12 px-1 py-0.5 text-sm text-center bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
                 />
             </form>
         );
@@ -85,7 +83,7 @@ const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
     return (
         <button 
             onClick={() => setIsEditing(true)}
-            className="hover:bg-blue-500/10 transition-colors p-1 rounded text-blue-400 hover:text-blue-300"
+            className="block w-full text-center text-blue-400 hover:text-blue-300"
         >
             {value}
         </button>
