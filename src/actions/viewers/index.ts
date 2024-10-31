@@ -5,7 +5,6 @@ import type { ViewerResponse, Rating } from '../../types/viewers';
 
 const PUBLIC_OMDB_API_KEY = import.meta.env.PUBLIC_OMDB_API_KEY;
 const OMDB_URL = `https://www.omdbapi.com/?apikey=${PUBLIC_OMDB_API_KEY}`;
-console.log(OMDB_URL);
 
 export const viewers = {
 
@@ -21,11 +20,32 @@ export const viewers = {
                     .where(eq(ViewersDB.id, Number(viewerId))
                     )
                     .run();
+
+                if (!getUser.rows[0]) {
+                    throw new Error("User not found");
+                }
+
                 const user = getUser.rows[0];
-                if (!user) throw new Error('User not found');
-                return user;
+                return {
+                    id: Number(user.id),
+                    _id: String(user._id),
+                    name: String(user.name),
+                    clerkId: String(user.clerkId),
+                    discordId: user.discordId ? String(user.discordId) : undefined,
+                    discordUsername: user.discordUsername ? String(user.discordUsername) : undefined,
+                    color: String(user.color),
+                        avatar: user.avatar ? String(user.avatar) : undefined,
+                        isAdmin: Boolean(user.isAdmin),
+                        bio: user.bio ? String(user.bio) : undefined,
+                        ratings: [],
+                        pickedList: []
+                };
             } catch (error) {
                 console.error('Error fetching user:', error);
+                return {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    data: null
+                };
             }
         },
     }),
@@ -85,7 +105,7 @@ export const viewers = {
             viewerId: z.number(),
             sort: z.string().optional(),
         }),
-        handler: async ({ viewerId, sort }): Promise<ViewerResponse> => {
+        handler: async ({ viewerId, sort }) => {
             try {
                 const viewer = await db
                     .select()
@@ -160,23 +180,18 @@ export const viewers = {
                 }));
 
                 return {
-                    data: {
-                        data: {
-                            id: Number(viewer.rows[0].id),
-                            _id: String(viewer.rows[0]._id),
-                            name: String(viewer.rows[0].name),
-                            clerkId: String(viewer.rows[0].clerkId),
-                            discordId: String(viewer.rows[0].discordId ?? null),
-                            discordUsername: String(viewer.rows[0].discordUsername ?? null),
-                            color: String(viewer.rows[0].color),
-                            avatar: String(viewer.rows[0].avatar ?? ''),
-                            isAdmin: Boolean(viewer.rows[0].isAdmin),
-                            bio: String(viewer.rows[0].bio) ?? undefined,
-                            ratings: ratingsWithMovies,
-                            pickedList: pickedMoviesWithPosters
-                        },
-                        error: null
-                    }
+                    id: Number(viewer.rows[0].id),
+                    _id: String(viewer.rows[0]._id),
+                    name: String(viewer.rows[0].name),
+                    clerkId: String(viewer.rows[0].clerkId),
+                    discordId: String(viewer.rows[0].discordId ?? null),
+                    discordUsername: String(viewer.rows[0].discordUsername ?? null),
+                    color: String(viewer.rows[0].color),
+                    avatar: String(viewer.rows[0].avatar ?? ''),
+                    isAdmin: Boolean(viewer.rows[0].isAdmin),
+                    bio: String(viewer.rows[0].bio) ?? undefined,
+                    ratings: ratingsWithMovies,
+                    pickedList: pickedMoviesWithPosters
                 };
             } catch (error) {
                 return {
@@ -200,10 +215,37 @@ export const viewers = {
                     .from(ViewersDB)
                     .where(eq(ViewersDB.clerkId, clerkId))
                     .run();
+
+                if (!getUser.rows[0]) {
+                    return {
+                        error: "User not found",
+                        data: null
+                    };
+                }
+
                 const { ...user } = getUser.rows[0];
                 return user;
             } catch (error) {
                 console.error('Error fetching user:', error);
+            }
+        },
+    }),
+
+    checkAdmin: defineAction({
+        input: z.object({
+            clerkId: z.string(),
+        }),
+        handler: async ({ clerkId }): Promise<boolean> => {
+            try {
+                const viewer = await db
+                    .select()
+                    .from(ViewersDB)
+                    .where(eq(ViewersDB.clerkId, clerkId))
+                    .run();
+                return Boolean(viewer.rows[0]?.isAdmin);
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                return false;
             }
         },
     }),

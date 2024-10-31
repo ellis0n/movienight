@@ -9,9 +9,10 @@ import EditableRatingCell from './EditableRatingCell';
 interface TheListProps {
   tableData: any[];
   isCurrentViewer: boolean;
+  isAdmin: boolean;
 }
 
-const TheList = ({ tableData, isCurrentViewer }: TheListProps) => {
+const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
   const calculateAverageRating = (ratings: any[]) => {
     return ratings.length > 0
       ? (ratings.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / ratings.length).toFixed(2)
@@ -137,7 +138,7 @@ const TheList = ({ tableData, isCurrentViewer }: TheListProps) => {
                 <EditableRatingCell
                   value={rating?.score ?? null}
                   ratingId={rating?.id ?? ''}
-                  isEditable={isCurrentViewer}  // Pass the computed value
+                  isEditable={(rating?.viewer?.isCurrentUser || isAdmin) ?? false}
                   onUpdate={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
                 />
               );

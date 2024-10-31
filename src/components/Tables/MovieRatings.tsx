@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import EditableRatingCell from './EditableRatingCell';
 
 interface MovieRatingsProps {
   data: {
@@ -11,23 +12,36 @@ interface MovieRatingsProps {
     viewerId: number;
     score: number;
     viewerName: string;
-  }[];
+  }[],
+  currentViewerId: number | null;
+  isAdmin: boolean;
 }
 
-const MovieRatings: React.FC<MovieRatingsProps> = ({ data }) => {
-  console.log(data);
+const MovieRatings: React.FC<MovieRatingsProps> = ({ 
+  data: initialData,
+  isAdmin,
+  currentViewerId     
+}) => {
+  const [data, setData] = useState(initialData);
+
+  const handleRatingUpdate = (ratingId: number, newScore: number) => {
+    setData(prevData => 
+      prevData.map(rating => 
+        rating.id === ratingId 
+          ? { ...rating, score: newScore }
+          : rating
+      )
+    );
+  };
+
   const columns: ColDef[] = useMemo(() => [
     {
       headerName: "Viewer",
       field: "viewerName",
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: (params: { data: { viewerId: any }; value: any }) => (
-        <>
-          <a href={`/viewers/${params.data.viewerId}`} className="text-blue-400 hover:underline">
-            {params.value}
-          </a>
-        </>
+        <>{params.value}</>
       ),
     },
     {
@@ -35,13 +49,20 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({ data }) => {
       field: "score",
       sortable: true,
       filter: true,
-      cellRenderer: (params: { data: { viewerId: any; id: any }; value: any }) => (
-        <a href={`/viewers/${params.data.viewerId}/ratings/${params.data.id}`} className="text-blue-400 hover:underline">
-          {params.value}
-        </a>
+      cellRenderer: (params: { data: {
+        viewerId: number; id: number 
+}; value: number }) => (
+        <EditableRatingCell
+          value={params.value}
+          ratingId={params.data.id}
+          isEditable={
+            isAdmin ||
+            params.data.viewerId === currentViewerId}
+          onUpdate={(newValue) => handleRatingUpdate(params.data.id, newValue)}
+        />
       ),
     },
-  ], []);
+  ], [isAdmin]);
 
   const defaultColDef: ColDef = {
     flex: 1,
@@ -57,7 +78,9 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({ data }) => {
         defaultColDef={defaultColDef}
         domLayout="autoHeight"
         enableCellTextSelection={true}
-        suppressCopyRowsToClipboard={true}
+        components={{
+          editableRatingCell: EditableRatingCell
+        }}
       />
     </div>
   );

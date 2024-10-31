@@ -4,19 +4,25 @@ import { actions } from "astro:actions";
 import { Image } from "astro:assets";
 import MovieRatings from "@components/Tables/MovieRatings";
 
+const movieId = Number(Astro.params.id);
 const auth = Astro.locals.auth();
-const numberId = Number(Astro.params.id);
+const { data: isAdmin } = await Astro.callAction(actions.viewers.checkAdmin, {
+  clerkId: auth?.userId ?? "",
+});
+
+const { data: currentViewer } = auth
+  ? await Astro.callAction(actions.viewers.getViewerByClerkId, {
+      clerkId: auth?.userId ?? "",
+    })
+  : { data: null };
 
 const getMovie = await Astro.callAction(actions.movies.getMovieWithRatings, {
-  movieId: numberId,
-  sort: "RATING_SCORE_DESC",
+  movieId: movieId,
 });
 const { data: movie, error } = getMovie;
-console.log(movie);
-if (!movie?.data) return Astro.redirect("/404");
+if (!movie?.data || error) return Astro.redirect("/404");
 
 const { ratings, average, title, date } = movie.data;
-const id = numberId;
 
 const getOMDB = await Astro.callAction(actions.omdb.getOmdbFilm, {
   title: String(title ?? ""),
@@ -29,7 +35,7 @@ if (omdbError) {
   console.error("Error fetching OMDB data:", omdbError);
 }
 
-const tableData = ratings.map((rating) => ({
+const data = ratings.map((rating) => ({
   id: Number(rating.id),
   movieId: Number(rating.movieId),
   viewerId: Number(rating.viewerId),
@@ -52,7 +58,7 @@ const tableData = ratings.map((rating) => ({
               height={288}
               width={192}
               class="w-48 h-72 object-cover rounded-lg mb-4 md:mb-0 md:mr-4"
-              transition:name={`poster-${id}`}
+              transition:name={`poster-${movieId}`}
             />
             <div class="flex-1">
               <p class="text-lg mb-2">
@@ -79,7 +85,12 @@ const tableData = ratings.map((rating) => ({
 
         <div class="mt-8">
           <h2 class="text-2xl font-semibold mb-4">Ratings:</h2>
-          <MovieRatings client:load data={tableData} />
+          <MovieRatings
+            client:load
+            data={data}
+            currentViewerId={Number(currentViewer?.id) ?? null}
+            isAdmin={isAdmin ?? false}
+          />
         </div>
       </div>
     )

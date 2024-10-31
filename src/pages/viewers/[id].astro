@@ -6,26 +6,38 @@ import type { ViewerResponse } from "../../types/viewers";
 import placeholder from "../../assets/placeholdermovie.png";
 import { Image } from "astro:assets";
 
-const id = Astro.params.id;
-const numberId = Number(id);
+const viewerId = Number(Astro.params.id);
 const auth = Astro.locals.auth();
+console.log(auth.userId);
 
-const result = await Astro.callAction(
+const { data: isAdmin } = auth.userId
+  ? await Astro.callAction(actions.viewers.checkAdmin, {
+      clerkId: auth?.userId ?? "",
+    })
+  : { data: false };
+
+const { data: currentViewer } = auth
+  ? await Astro.callAction(actions.viewers.getViewerByClerkId, {
+      clerkId: auth?.userId ?? "",
+    })
+  : { data: null };
+
+const isViewer = Boolean(auth?.userId && currentViewer?.id === viewerId);
+
+const { data: viewer, error } = await Astro.callAction(
   actions.viewers.getViewerWithRatingsAndMovies,
   {
-    viewerId: numberId,
+    viewerId,
     sort: "RATING_SCORE_DESC",
   }
 );
 
-const getViewerWithRatingsAndMovies = result.data as ViewerResponse;
-const { data: viewerData } = getViewerWithRatingsAndMovies;
-const viewer = viewerData?.data;
-const ratings = viewer?.ratings;
+if (error || !viewer) {
+  Astro.redirect("/404");
+}
+
+const ratings = viewer!.ratings;
 const ratingsWithMovies = ratings || [];
-const isViewer =
-  auth && ratings?.[0]?.clerkId && auth.userId === ratings[0].clerkId;
-// console.log(viewer.pickedList);
 ---
 
 <Layout title={`${viewer?.name}'s Profile`}>
@@ -111,9 +123,8 @@ const isViewer =
       <ViewerRatings
         client:load
         data={ratingsWithMovies}
-        viewerId={numberId}
-        isCurrentViewer={!!isViewer}
-        isAdmin={viewer?.isAdmin ?? false}
+        isCurrentViewer={isViewer}
+        isAdmin={isAdmin}
       />
     </div>
   </div>

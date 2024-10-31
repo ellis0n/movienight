@@ -1,6 +1,6 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
-import { asc, db, desc, eq, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
+import { asc, db, desc, eq, inArray, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
 
 interface MovieWithRatings {
     id: number;
@@ -106,31 +106,41 @@ export const movies = {
                     .where(eq(RatingsDB.movieId, movieId))
                     .innerJoin(ViewersDB, eq(RatingsDB.viewerId, ViewersDB.id))
                     .run();
+                
+                    
+                    
+                const ratingsData = ratingsQuery.rows;
+                const viewers = await db
+                    .select()
+                    .from(ViewersDB)
+                    .where(inArray(ViewersDB.id, ratingsData.map(rating => Number(rating.viewerId))))
+                    .run(); 
+                
+                const mappedRatings = ratingsData.map(rating => ({
+                    id: Number(rating.id),
+                    movieId: Number(rating.movieId),
+                    viewerId: Number(rating.viewerId),
+                    score: Number(rating.score),
+                    viewerName: String(viewers.rows.find(viewer => viewer.id === Number(rating.viewerId))?.name ?? '')
+                }));
 
-                const ratings = ratingsQuery.rows;
-
-                const average = ratings.length > 0 
-                    ? ratings.reduce((sum, rating) => sum + Number(rating.score), 0) / ratings.length 
+                const average = mappedRatings.length > 0 
+                    ? mappedRatings.reduce((sum, rating) => sum + Number(rating.score), 0) / mappedRatings.length 
                     : 0;
 
                 if (sort === 'RATING_SCORE_DESC') {
-                    ratings.sort((a, b) => Number(b.score) - Number(a.score));
+                    mappedRatings.sort((a, b) => Number(b.score) - Number(a.score));
                 }
 
                 return { 
-                    data: { 
+                    data: {
+                        ...movie,
                         id: Number(movie.id),
                         _id: String(movie._id),
                         title: String(movie.title),
-                        ratings: ratings.map(rating => ({
-                            id: Number(rating.id),
-                            movieId: Number(rating.movieId),
-                            viewerId: Number(rating.viewerId),
-                            score: Number(rating.score),
-                            viewerName: String(rating.viewerName)
-                        })),
-                        average,
-                        date: movie.date ? new Date(String(movie.date)) : new Date()
+                        date: new Date(String(movie.date)),
+                        ratings: mappedRatings,
+                        average
                     },
                     error: null
                 };

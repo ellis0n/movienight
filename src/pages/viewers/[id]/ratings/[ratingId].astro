@@ -7,25 +7,34 @@ import UpdateRating from "@components/UpdateRating.astro";
 const viewerId = Number(Astro.params.id);
 const ratingId = Number(Astro.params.ratingId);
 const auth = Astro.locals.auth();
-
-// Get viewer data
-const getViewer = await Astro.callAction(actions.viewers.getViewerById, {
-  viewerId,
+const { data: isAdmin } = await Astro.callAction(actions.viewers.checkAdmin, {
+  clerkId: auth?.userId ?? "",
 });
+const { data: currentViewer } = await Astro.callAction(
+  actions.viewers.getViewerByClerkId,
+  {
+    clerkId: auth?.userId ?? "",
+  }
+);
 
-const { data: viewer, error: viewerError } = getViewer;
+// Page viewer data
+const { data: viewer, error } = await Astro.callAction(
+  actions.viewers.getViewerById,
+  { viewerId }
+);
 
-if (viewerError || !viewer) {
-  console.error("Error fetching viewer:", viewerError);
+if (error || !viewer || "error" in viewer) {
+  console.error("Error fetching viewer:", error || "Viewer not found");
   return Astro.redirect("/404");
 }
 
 // Get rating data
-const getRating = await Astro.callAction(actions.ratings.getRatingById, {
-  ratingId,
-});
-
-const { data: rating, error: ratingError } = getRating;
+const { data: rating, error: ratingError } = await Astro.callAction(
+  actions.ratings.getRatingById,
+  {
+    ratingId,
+  }
+);
 
 if (ratingError || !rating) {
   console.error("Error fetching rating:", ratingError);
@@ -33,32 +42,28 @@ if (ratingError || !rating) {
 }
 
 // Get movie data
-const getMovie = await Astro.callAction(actions.movies.getMovieById, {
-  movieId: Number(rating.movieId),
-});
-
-const { data: movie, error: movieError } = getMovie;
-
-if (movieError) {
-  console.error("Error fetching movie:", movieError);
-}
-
-// Get OMDB data if movie exists
-let omdb;
-if (movie?.title) {
-  const getOmdb = await Astro.callAction(actions.omdb.getOmdbFilm, {
-    title: String(movie.title),
-  });
-  const { data: omdbData, error: omdbError } = getOmdb;
-
-  if (omdbError) {
-    console.error("Error fetching OMDB data:", omdbError);
-  } else {
-    omdb = omdbData?.data;
+const { data: movie, error: movieError } = await Astro.callAction(
+  actions.movies.getMovieById,
+  {
+    movieId: Number(rating.movieId),
   }
+);
+
+if (movieError || !movie) {
+  console.error("Error fetching movie:", movieError || "Movie not found");
+  return Astro.redirect("/404");
 }
 
-const isViewer = auth && auth.userId === viewer.clerkId;
+const { data: omdbData, error: omdbError } = await Astro.callAction(
+  actions.omdb.getOmdbFilm,
+  {
+    title: String(movie.title),
+  }
+);
+
+if (omdbError) {
+  console.error("Error fetching OMDB data:", omdbError);
+}
 ---
 
 <Layout title={`${viewer.name}'s rating for '${rating.movieTitle}'`}>

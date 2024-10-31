@@ -19,10 +19,10 @@ if (auth.userId) {
 
 <div
   id="sidebar"
-  class="fixed top-0 left-0 z-20 flex-row flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-300 lg:flex transition-all"
+  class="fixed top-0 left-0 z-20 flex-row flex-shrink-0 hidden w-64 h-screen pt-16 font-normal duration-300 lg:flex transition-all"
 >
   <div
-    class="relative flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-800 dark:border-gray-700"
+    class="relative flex flex-col flex-1 min-h-screen bg-white dark:bg-gray-800 dark:border-gray-700"
   >
     <div
       class="flex flex-col flex-1 pt-5 pb-6 overflow-y-auto scrollbar scrollbar-w-2 scrollbar-thumb-rounded-md scrollbar-slate-200 dark:scrollbar-thumb-slate-900"
@@ -113,16 +113,25 @@ if (auth.userId) {
     let isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
     
     function updateSidebar() {
-      if (isCollapsed) {
-        sidebar?.classList.add("-translate-x-[calc(100%-0.2rem)]");
-        toggleButton?.classList.add("translate-x-full");
-        toggleIcon?.classList.add("rotate-180");
-        mainContent && mainContent.classList.remove("lg:ml-64");
+      const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
+      
+      if (isLargeScreen) {
+        if (isCollapsed) {
+          sidebar?.classList.add("-translate-x-[calc(100%-0.2rem)]");
+          toggleButton?.classList.add("translate-x-full");
+          toggleIcon?.classList.add("rotate-180");
+          mainContent && mainContent.classList.remove("lg:ml-64");
+        } else {
+          sidebar?.classList.remove("-translate-x-[calc(100%-0.2rem)]");
+          toggleButton?.classList.remove("translate-x-full");
+          toggleIcon?.classList.remove("rotate-180");
+          mainContent && mainContent.classList.add("lg:ml-64");
+        }
       } else {
-        sidebar && sidebar.classList.remove("-translate-x-[calc(100%-0.2rem)]");
+        // Remove transform classes on mobile
+        sidebar?.classList.remove("-translate-x-[calc(100%-0.2rem)]");
         toggleButton?.classList.remove("translate-x-full");
         toggleIcon?.classList.remove("rotate-180");
-        mainContent && mainContent.classList.add("lg:ml-64");
       }
     }
 
@@ -134,24 +143,28 @@ if (auth.userId) {
       };
     }
 
-    // Initialize sidebar state immediately
+    // Initialize sidebar state
     updateSidebar();
-  });
+  // });
 
-  // Add view transition handler
-  document.addEventListener("astro:after-swap", () => {
-    const sidebar = document.getElementById("sidebar");
-    const toggleButton = document.getElementById("toggle-aside");
-    const toggleIcon = document.getElementById("toggle-icon");
-    const mainContent = document.querySelector("main");
+  // // Add view transition handler
+  // document.addEventListener("astro:after-swap", () => {
+  //   const sidebar = document.getElementById("sidebar");
+  //   const toggleButton = document.getElementById("toggle-aside");
+  //   const toggleIcon = document.getElementById("toggle-icon");
+  //   const mainContent = document.querySelector("main");
     
-    let isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+  //   let isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
     
-    if (isCollapsed) {
-      sidebar?.classList.add("-translate-x-[calc(100%-0.2rem)]");
-      toggleButton?.classList.add("translate-x-full");
-      toggleIcon?.classList.add("rotate-180");
-      mainContent && mainContent.classList.remove("lg:ml-64");
-    }
-  });
+  //   if (isCollapsed) {
+  //     sidebar?.classList.add("-translate-x-[calc(100%-0.2rem)]");
+  //     toggleButton?.classList.add("translate-x-full");
+  //     toggleIcon?.classList.add("rotate-180");
+  //     mainContent && mainContent.classList.remove("lg:ml-64");
+  //   }
+  // });
+
+  // Add resize listener
+  window.addEventListener('resize', updateSidebar);
+});
 </script>

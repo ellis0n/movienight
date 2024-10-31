@@ -5,20 +5,18 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
 import EditableRatingCell from './EditableRatingCell';
-import type { Rating } from '../../types/viewers';
+import type { Rating, Viewer } from '../../types/viewers';
 
 interface ViewerRatingsProps {
   data: Rating[];
-  viewerId: number;
-  isCurrentViewer?: boolean;
+  isCurrentViewer: boolean;
   isAdmin?: boolean;
 }
 
 const ViewerRatings: React.FC<ViewerRatingsProps> = ({ 
   data: initialData, 
-  viewerId,
-  isCurrentViewer = false,
-  isAdmin = false
+  isCurrentViewer,
+  isAdmin
 }) => {
   const [data, setData] = useState(initialData);
 
@@ -55,9 +53,11 @@ const ViewerRatings: React.FC<ViewerRatingsProps> = ({
       sortable: true,
       filter: true,
       cellRenderer: (params: { data: { movieId: number }; value: string }) => (
-        <a href={`/movies/${params.data.movieId}`} className="text-blue-400 hover:underline">
-          {params.value}
-        </a>
+        <>
+          {/* <a href={`/movies/${params.data.movieId}`} className="text-blue-400 hover:underline"> */}
+            {params.value}
+          {/* </a> */}
+        </>
       ),
       tooltipComponent: ImageTooltip,
       tooltipField: 'movieTitle',
@@ -71,12 +71,12 @@ const ViewerRatings: React.FC<ViewerRatingsProps> = ({
         <EditableRatingCell
           value={params.value}
           ratingId={params.data.id}
-          isEditable={isCurrentViewer || isAdmin}
+          isEditable={isCurrentViewer || isAdmin || false}
           onUpdate={(newValue) => handleRatingUpdate(params.data.id, newValue)}
         />
       ),
     },
-  ], [viewerId, isCurrentViewer, isAdmin]);
+  ], [isCurrentViewer, isAdmin]);
 
   const defaultColDef: ColDef = {
     flex: 1,

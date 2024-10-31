@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 
+
 export const moviesData = [
   {
     _id: uuidv4(),
@@ -17,24 +18,24 @@ export const moviesData = [
   { _id: uuidv4(), id: 7, title: "Sexy Beast", date: new Date("2024-04-30"), pickedBy: 2},
   { _id: uuidv4(), id: 8, title: "Boogie Nights", date: new Date("2024-05-07"), pickedBy: 4},
   { _id: uuidv4(), id: 9, title: "Johnny Mnemonic", date: new Date("2024-05-14"), pickedBy: 3},
-  { _id: uuidv4(), id: 10, title: "Reign Of Fire", date: new Date("2024-05-21"), pickedBy: 5},
+  { _id: uuidv4(), id: 10, title: "Reign Of Fire", date: new Date("2024-05-21"), pickedBy: 8},
   { _id: uuidv4(), id: 11, title: "Human Traffic", date: new Date("2024-05-28"), pickedBy: 1},
   { _id: uuidv4(), id: 12, title: "Blood Simple", date: new Date("2024-06-04"), pickedBy: 2},
   { _id: uuidv4(), id: 13, title: "Everything Everywhere All At Once", date: new Date("2024-06-11"), pickedBy: 4},
-  { _id: uuidv4(), id: 14, title: "Velocipastor", date: new Date("2024-06-18"), pickedBy: 7},
-  { _id: uuidv4(), id: 15, title: "Antitrust", date: new Date("2024-06-25"), pickedBy: 6},
+  { _id: uuidv4(), id: 14, title: "Velocipastor", date: new Date("2024-06-18"), pickedBy: 5},
+  { _id: uuidv4(), id: 15, title: "Antitrust", date: new Date("2024-06-25"), pickedBy: 9},
   { _id: uuidv4(), id: 16, title: "Misery", date: new Date("2024-07-02"), pickedBy: 9},
   { _id: uuidv4(), id: 17, title: "The Abyss", date: new Date("2024-07-09"), pickedBy: 15},
   { _id: uuidv4(), id: 18, title: "The Thing", date: new Date("2024-07-16"), pickedBy: 1},
-  { _id: uuidv4(), id: 19, title: "Tampopo", date: new Date("2024-07-23"), pickedBy: 10},
+  { _id: uuidv4(), id: 19, title: "Tampopo", date: new Date("2024-07-23"), pickedBy: 7},
   { _id: uuidv4(), id: 20, title: "True Romance", date: new Date("2024-07-30"), pickedBy: 2},
   { _id: uuidv4(), id: 21, title: "The Fugitive", date: new Date("2024-08-13"), pickedBy: 3},
   { _id: uuidv4(), id: 22, title: "Rat Race", date: new Date("2024-08-20"), pickedBy: 3},
   { _id: uuidv4(), id: 23, title: "Bring it On", date: new Date("2024-08-27"), pickedBy: 4},
-  { _id: uuidv4(), id: 24, title: "The Lighthouse", date: new Date("2024-09-03"), pickedBy: 7},
+  { _id: uuidv4(), id: 24, title: "The Lighthouse", date: new Date("2024-09-03"), pickedBy: 5},
   { _id: uuidv4(), id: 25, title: "Blackberry", date: new Date("2024-09-01"), pickedBy: 12},
-  { _id: uuidv4(), id: 26, title: "Master & Commander", date: new Date("2024-09-17"), pickedBy: 9},
-  { _id: uuidv4(), id: 27, title: "Godzilla Minus One", date: new Date("2024-09-24"), pickedBy: 5},
+  { _id: uuidv4(), id: 26, title: "Master & Commander", date: new Date("2024-09-17"), pickedBy: 6},
+  { _id: uuidv4(), id: 27, title: "Godzilla Minus One", date: new Date("2024-09-24"), pickedBy: 8},
   { _id: uuidv4(), id: 28, title: "Twilight", date: new Date("2024-10-01"), pickedBy: 10},
   { _id: uuidv4(), id: 29, title: "Small Soldiers", date: new Date("2024-10-08"), pickedBy: 11},
   { _id: uuidv4(), id: 30, title: "There Will Be Blood", date: new Date("2024-10-15"), pickedBy: 2},
@@ -359,7 +360,7 @@ export const viewersData = [
     id: 6,
     _id: uuidv4(),
     name: "Jonny",
-    clerkId: "jonny@clerkId.com",
+    clerkId: "user_2nnc8MWkBNdElRIci7yw9h7OpLW",
     discordId: "678901234",
     discordUsername: "jonny#4567",
     color: "#E74C3C", // Bright red
@@ -498,6 +499,18 @@ export const viewersData = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Coob",
     joinedDate: new Date("2023-01-13"),
     isAdmin: false
+  },
+  {
+    id: 18,
+    _id: uuidv4(),
+    name: "test",
+    clerkId: "user_2oB4uhwcaRV85dTK5fYFZchMbKe",
+    discordId: "123456789",
+    discordUsername: "pro wrestler",
+    color: "#FF5733",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=test",
+    joinedDate: new Date("2024-10-31"),
+    isAdmin: false
   }
 ];
 
@@ -518,6 +531,12 @@ function validateData() {
   );
   if (invalidRatings.length > 0) {
     console.error('Invalid rating references:', invalidRatings);
+  }
+
+  // Warn if no admin
+  const checkForAdmin = viewersData.filter(v => v.isAdmin);
+  if (checkForAdmin.length === 0) {
+    console.warn('No admin found');
   }
 }
 
