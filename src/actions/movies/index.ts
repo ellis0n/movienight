@@ -1,6 +1,7 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { asc, db, desc, eq, inArray, MoviesDB, RatingsDB, sql, ViewersDB } from 'astro:db';
+import { create } from './create';
 
 interface MovieWithRatings {
     id: number;
@@ -150,4 +151,5 @@ export const movies = {
             }
         },
     }),
+    ...create,
 }

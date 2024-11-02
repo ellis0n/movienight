@@ -25,7 +25,7 @@ export const moviesData = [
   { _id: uuidv4(), id: 14, title: "Velocipastor", date: new Date("2024-06-18"), pickedBy: 5},
   { _id: uuidv4(), id: 15, title: "Antitrust", date: new Date("2024-06-25"), pickedBy: 9},
   { _id: uuidv4(), id: 16, title: "Misery", date: new Date("2024-07-02"), pickedBy: 9},
-  { _id: uuidv4(), id: 17, title: "The Abyss", date: new Date("2024-07-09"), pickedBy: 15},
+  { _id: uuidv4(), id: 17, title: "The Abyss", date: new Date("2024-07-09"), pickedBy: 13},
   { _id: uuidv4(), id: 18, title: "The Thing", date: new Date("2024-07-16"), pickedBy: 1},
   { _id: uuidv4(), id: 19, title: "Tampopo", date: new Date("2024-07-23"), pickedBy: 7},
   { _id: uuidv4(), id: 20, title: "True Romance", date: new Date("2024-07-30"), pickedBy: 2},
@@ -39,7 +39,8 @@ export const moviesData = [
   { _id: uuidv4(), id: 28, title: "Twilight", date: new Date("2024-10-01"), pickedBy: 10},
   { _id: uuidv4(), id: 29, title: "Small Soldiers", date: new Date("2024-10-08"), pickedBy: 11},
   { _id: uuidv4(), id: 30, title: "There Will Be Blood", date: new Date("2024-10-15"), pickedBy: 2},
-  { _id: uuidv4(), id: 31, title: "Ghost in the Shell", date: new Date("2024-10-22"), pickedBy: 3}
+  { _id: uuidv4(), id: 31, title: "Ghost in the Shell", date: new Date("2024-10-22"), pickedBy: 3 },
+  { _id: uuidv4(), id: 32, title: "Tucker And Dale vs Evil", date: new Date("2024-10-29"), pickedBy:  13},
 ];
 
 export const ratingsData = [
@@ -291,8 +292,21 @@ export const ratingsData = [
   { _id: uuidv4(), id: 246, movieId: 31, viewerId: 7, score: 9.0 }, // Mitch
   { _id: uuidv4(), id: 247, movieId: 31, viewerId: 10, score: 4.8 }, // Sam
   { _id: uuidv4(), id: 248, movieId: 31, viewerId: 11, score: 7.5 }, // Garrett
-  { _id: uuidv4(), id: 249, movieId: 31, viewerId: 13, score: 7.0 } // Coob
-  
+  { _id: uuidv4(), id: 249, movieId: 31, viewerId: 13, score: 7.0 }, // Coob
+  { _id: uuidv4(), id: 250, movieId: 32, viewerId: 4, score: 7.9 },
+  { _id: uuidv4(), id: 251, movieId: 32, viewerId: 1, score: 6.3 },
+  { _id: uuidv4(), id: 252, movieId: 32, viewerId: 2, score: 6.6 },
+  { _id: uuidv4(), id: 253, movieId: 32, viewerId: 3, score: 6 },
+  { _id: uuidv4(), id: 254, movieId: 32, viewerId: 9, score: 6.5 },
+  { _id: uuidv4(), id: 255, movieId: 32, viewerId: 5, score: 7.4 },
+  { _id: uuidv4(), id: 256, movieId: 32, viewerId: 12, score: 6 },
+  { _id: uuidv4(), id: 257, movieId: 32, viewerId: 10, score: 7.2 },
+  { _id: uuidv4(), id: 258, movieId: 32, viewerId: 7, score: 6.2 },
+  { _id: uuidv4(), id: 259, movieId: 32, viewerId: 10, score: 6 },
+  { _id: uuidv4(), id: 260, movieId: 32, viewerId: 11, score: 6.5 },
+  { _id: uuidv4(), id: 261, movieId: 32, viewerId: 13, score: 7.4 },
+  { _id: uuidv4(), id: 262, movieId: 32, viewerId: 14, score: 6.8 },
+  { _id: uuidv4(), id: 263, movieId: 32, viewerId: 15, score: 6 },
 ];
 
 export const viewersData = [

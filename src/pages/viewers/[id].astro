@@ -8,7 +8,6 @@ import { Image } from "astro:assets";
 
 const viewerId = Number(Astro.params.id);
 const auth = Astro.locals.auth();
-console.log(auth.userId);
 
 const { data: isAdmin } = auth.userId
   ? await Astro.callAction(actions.viewers.checkAdmin, {
