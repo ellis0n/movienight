@@ -34,7 +34,7 @@ export const moviesData = [
   { _id: uuidv4(), id: 23, title: "Bring it On", date: new Date("2024-08-27"), pickedBy: 4},
   { _id: uuidv4(), id: 24, title: "The Lighthouse", date: new Date("2024-09-03"), pickedBy: 5},
   { _id: uuidv4(), id: 25, title: "Blackberry", date: new Date("2024-09-01"), pickedBy: 12},
-  { _id: uuidv4(), id: 26, title: "Master & Commander", date: new Date("2024-09-17"), pickedBy: 6},
+  { _id: uuidv4(), id: 26, title: "Master and Commander", date: new Date("2024-09-17"), pickedBy: 6},
   { _id: uuidv4(), id: 27, title: "Godzilla Minus One", date: new Date("2024-09-24"), pickedBy: 8},
   { _id: uuidv4(), id: 28, title: "Twilight", date: new Date("2024-10-01"), pickedBy: 10},
   { _id: uuidv4(), id: 29, title: "Small Soldiers", date: new Date("2024-10-08"), pickedBy: 11},

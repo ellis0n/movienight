@@ -4,7 +4,7 @@ import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
-import EditableRatingCell from './EditableRatingCell';
+import EditableRatingCell from './Cells/EditableRatingCell';
 import type { Rating, Viewer } from '../../types/viewers';
 
 interface ViewerRatingsProps {

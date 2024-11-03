@@ -6,15 +6,14 @@ import MovieRatings from "@components/Tables/MovieRatings";
 
 const movieId = Number(Astro.params.id);
 const auth = Astro.locals.auth();
-const { data: isAdmin } = await Astro.callAction(actions.viewers.checkAdmin, {
-  clerkId: auth?.userId ?? "",
-});
 
-const { data: currentViewer } = auth
-  ? await Astro.callAction(actions.viewers.getViewerByClerkId, {
+let isAdmin = false;
+const { data: user } = auth
+  ? await Astro.callAction(actions.auth.getUser, {
       clerkId: auth?.userId ?? "",
     })
   : { data: null };
+isAdmin = user?.viewer?.isAdmin ?? false;
 
 const getMovie = await Astro.callAction(actions.movies.getMovieWithRatings, {
   movieId: movieId,
@@ -88,7 +87,7 @@ const data = ratings.map((rating) => ({
           <MovieRatings
             client:load
             data={data}
-            currentViewerId={Number(currentViewer?.id) ?? null}
+            viewerId={Number(user?.viewer?.id) ?? null}
             isAdmin={isAdmin ?? false}
           />
         </div>

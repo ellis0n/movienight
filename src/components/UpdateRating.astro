@@ -44,9 +44,10 @@ if (!rating || ratingError) return Astro.redirect("/404");
             type="number"
             name="score"
             id="score"
-            min="1"
+            min="0"
             max="10"
             step="0.1"
+            required
             value={(score ?? "").toString()}
             class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md
             shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500

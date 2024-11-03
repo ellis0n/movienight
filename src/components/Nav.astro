@@ -10,11 +10,13 @@ import {
 
 const auth = Astro.locals.auth();
 
-const viewer = await Astro.callAction(actions.viewers.getViewerByClerkId, {
+const { data: viewer, error } = await Astro.callAction(actions.auth.getUser, {
   clerkId: auth.userId ?? "",
 });
 
-const result = await Astro.getActionResult(actions.viewers.getViewerByClerkId);
+if (error) {
+  console.log("Not logged in.");
+}
 ---
 
 <nav class="bg-slate-700">

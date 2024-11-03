@@ -9,19 +9,12 @@ import { Image } from "astro:assets";
 const viewerId = Number(Astro.params.id);
 const auth = Astro.locals.auth();
 
-const { data: isAdmin } = auth.userId
-  ? await Astro.callAction(actions.viewers.checkAdmin, {
-      clerkId: auth?.userId ?? "",
-    })
-  : { data: false };
+const { data: user } = await Astro.callAction(actions.auth.getUser, {
+  clerkId: auth?.userId ?? "",
+});
+const isAdmin = user?.viewer?.isAdmin ?? false;
 
-const { data: currentViewer } = auth
-  ? await Astro.callAction(actions.viewers.getViewerByClerkId, {
-      clerkId: auth?.userId ?? "",
-    })
-  : { data: null };
-
-const isViewer = Boolean(auth?.userId && currentViewer?.id === viewerId);
+const isViewer = Boolean(auth?.userId && user?.viewer?.id === viewerId);
 
 const { data: viewer, error } = await Astro.callAction(
   actions.viewers.getViewerWithRatingsAndMovies,

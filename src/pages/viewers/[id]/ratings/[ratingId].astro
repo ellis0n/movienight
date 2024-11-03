@@ -11,7 +11,7 @@ const { data: isAdmin } = await Astro.callAction(actions.viewers.checkAdmin, {
   clerkId: auth?.userId ?? "",
 });
 const { data: currentViewer } = await Astro.callAction(
-  actions.viewers.getViewerByClerkId,
+  actions.viewers.getCurrentViewer,
   {
     clerkId: auth?.userId ?? "",
   }

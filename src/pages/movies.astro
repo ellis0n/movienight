@@ -4,11 +4,13 @@ import { Image } from "astro:assets";
 import { actions } from "astro:actions";
 import MoviesTable from "@components/Tables/MoviesTable";
 import placeholder from "../assets/placeholdermovie.png";
+import { User } from "@clerk/astro/server";
 
 const auth = Astro.locals.auth();
-const { data: isAdmin } = await Astro.callAction(actions.viewers.checkAdmin, {
+const { data: user } = await Astro.callAction(actions.auth.getUser, {
   clerkId: auth?.userId ?? "",
 });
+const isAdmin = user?.viewer?.isAdmin ?? false;
 
 const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
   sort: "TITLE_ASC",
@@ -123,7 +125,7 @@ const moviesWithOmdb = await Promise.all(
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
     >
       {
-        isAdmin && (
+        auth && user?.viewer?.isAdmin && (
           <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
             <button
               id="toggleFormBtn"

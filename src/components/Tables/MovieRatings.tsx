@@ -3,7 +3,7 @@ import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import EditableRatingCell from './EditableRatingCell';
+import EditableRatingCell from './Cells/EditableRatingCell';
 
 interface MovieRatingsProps {
   data: {
@@ -13,14 +13,14 @@ interface MovieRatingsProps {
     score: number;
     viewerName: string;
   }[],
-  currentViewerId: number | null;
+  viewerId: number | null;
   isAdmin: boolean;
 }
 
 const MovieRatings: React.FC<MovieRatingsProps> = ({ 
   data: initialData,
   isAdmin,
-  currentViewerId     
+  viewerId     
 }) => {
   const [data, setData] = useState(initialData);
 
@@ -57,7 +57,7 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({
           ratingId={params.data.id}
           isEditable={
             isAdmin ||
-            params.data.viewerId === currentViewerId}
+            params.data.viewerId === viewerId}
           onUpdate={(newValue) => handleRatingUpdate(params.data.id, newValue)}
         />
       ),

@@ -1,18 +1,39 @@
 import { useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef } from 'ag-grid-community';
+import type { ColDef, ITooltipParams } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
-import EditableRatingCell from './EditableRatingCell';
+import EditableRatingCell from './Cells/EditableRatingCell';
+import AddRatingCell from './Cells/AddRatingCell';
 
 interface TheListProps {
   tableData: any[];
-  isCurrentViewer: boolean;
   isAdmin: boolean;
 }
 
-const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
+const TheList = ({ tableData, isAdmin }: TheListProps) => {
+  const [isHeatmapEnabled, setIsHeatmapEnabled] = useState(false);
+  const [isStarRatingEnabled, setIsStarRatingEnabled] = useState(false);
+
+const getHeatmapColor = (score: number) => {
+  if (score === null || score === undefined) return 'transparent';
+  
+  const numScore = Number(score);
+  if (isNaN(numScore)) {
+    console.log('Invalid score:', score);
+    return 'transparent';
+  }
+  
+  // More distinct ranges with proper color assignments
+  if (numScore === 10) return 'rgba(234, 179, 8, 0.2)';     // Gold
+  if (numScore >= 8) return 'rgba(34, 197, 94, 0.2)';       // Green
+  if (numScore >= 7) return 'rgba(132, 204, 22, 0.2)';      // Light Green
+  if (numScore >= 5) return 'rgba(250, 204, 21, 0.2)';      // Yellow
+  if (numScore >= 3) return 'rgba(249, 115, 22, 0.2)';      // Orange
+  return 'rgba(239, 68, 68, 0.2)';                          // Red
+};
+
   const calculateAverageRating = (ratings: any[]) => {
     return ratings.length > 0
       ? (ratings.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / ratings.length).toFixed(2)
@@ -44,12 +65,33 @@ const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
     );
   };
 
+  const getStarRating = (score: number) => {
+    if (!score && score !== 0) return '';
+    
+    // Simple division by 2 to convert 0-10 to 0-5
+    const starScore = score / 2;
+    // Round to nearest 0.5 to handle decimal scores properly
+    const fullStars = Math.floor(starScore);
+    const hasHalfStar = (starScore % 1) >= 0.5;
+    
+    return (
+      <div className="star-rating">
+        {[...Array(fullStars)].map((_, i) => (
+          <span key={`full-${i}`} className="star full">★</span>
+        ))}
+        {hasHalfStar && (
+          <span className="star half">★</span>
+        )}
+      </div>
+    );
+  };
+
   const colDefs: ColDef[] = [
     {
       headerName: 'Date',
       field: 'date',
       sortable: true,
-      minWidth: 150, 
+      minWidth: 90, 
       valueFormatter: (params) => {
         const date = new Date(params.value);
         return date.toLocaleDateString('en-US');
@@ -61,16 +103,25 @@ const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
       field: 'title',
       sortable: true,
       filter: 'agTextColumnFilter',
-    filterParams: {
-      filterOptions: ['contains'],
-      debounceMs: 200,
-      caseSensitive: false,
-    },
-      minWidth: 200, 
-      cellRenderer: (params: { value: string; data: { id: any; }; }) => {
+      filterParams: {
+        filterOptions: ['contains'],
+        debounceMs: 200,
+        caseSensitive: false,
+      },
+      minWidth: 200,
+      cellRenderer: (params: { value: string; data: { id: string; pickedBy: string; }; }) => {
         const value = params.value ?? 'N/A';
+        const picker = rowData[0]?.viewers?.find((v: { id: string; }) => v.id === params.data.pickedBy);
+        
         return value !== 'N/A' ? (
-          <a href={`/movies/${params.data.id}`} className="text-blue-500 hover:underline">
+          <a 
+            href={`/movies/${params.data.id}`}
+            className="text-blue-500 hover:underline"
+            style={{ 
+              borderLeft: picker ? `2px solid ${picker.color}40` : 'none',
+              paddingLeft: picker ? '0.5rem' : '0'
+            }}
+          >
             {value}
           </a>
         ) : (
@@ -79,75 +130,93 @@ const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
       },
       tooltipComponent: ImageTooltip,
       tooltipField: 'title',
-      tooltipValueGetter: (params) => {
-        return {
-          title: params.data.title,
-        };
-      },
-      tooltipComponentParams: (params: {
-        data: any; value: any; 
-      }) => {
-        return { title: params.data.title };
-      }
+      tooltipComponentParams: (params: { data: any; }) => ({
+        data: params.data
+      }),
     },
     {
       headerName: 'Avg',
       field: 'averageRating',
       sortable: true,
-      minWidth: 65, 
+      minWidth: 65,
+      cellClass: (params) => {
+        const value = params.value !== 'N/A' ? Number(params.value) : null;
+        return ['transition-colors', getHeatmapColor(value)];
+      },
+      cellRenderer: (params) => {
+        return params.value === 'N/A' ? params.value : Number(params.value).toFixed(2);
+      }
     },
     ...useMemo(() => {
       const viewerColumns: ColDef[] = [];
-      if (rowData.length > 0 && rowData[0].ratings) {
-        // Get all unique viewers
-        const viewers = new Set(rowData.flatMap(movie => 
-          movie.ratings.map((rating: { viewer: { name: any; isCurrentUser: boolean; }; }) => ({
-            name: rating.viewer.name,
-            isCurrentUser: rating.viewer.isCurrentUser
-          }))
-        ));
-
-        // Convert to array and sort so current user is first
-        const sortedViewers = Array.from(viewers)
-          .filter((v, i, arr) => arr.findIndex(viewer => viewer.name === v.name) === i) // Remove duplicates
-          .sort((a, b) => {
+      if (rowData.length > 0 && rowData[0].viewers) {
+        const sortedViewers = rowData[0].viewers
+          .sort((a: { isCurrentUser: any; id: number; }, b: { isCurrentUser: any; id: number; }) => {
             if (a.isCurrentUser) return -1;
             if (b.isCurrentUser) return 1;
-            return 0;
+            return a.id - b.id;
           });
         
-        // Create columns in the sorted order
-        sortedViewers.forEach(viewer => {
+        sortedViewers.forEach((viewer: { name: string; id: number; color: string; isCurrentUser: boolean; }) => {
           viewerColumns.push({
             headerName: viewer.name,
-            field: `ratings`,
+            field: 'ratings',
             sortable: true,
-            filter: false,
             minWidth: 100,
-            cellClass: 'hover:bg-blue-500/10 transition-colors p-1 rounded',
-            valueGetter: (params) => {
-              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => r.viewer.name === viewer.name);
-              return rating ? rating.score : null;
+            headerClass: 'py-2',
+            headerComponentParams: {
+              template: `<div style="color: ${viewer.color}">${viewer.name}</div>`
             },
-            cellRenderer: (params: { data: { ratings: any[]; id: string; }; }) => {
-              const rating = params.data.ratings.find((r: { viewer: { name: string; }; }) => 
-                r.viewer.name === viewer.name
+            valueGetter: (params) => {
+              const rating = params.data.ratings.find((r: any) => 
+                r.viewer.id === viewer.id
+              );
+              return rating ? rating.score : undefined;
+            },
+            cellStyle: (params) => ({
+              borderLeft: `2px solid ${viewer.color}40`,
+              backgroundColor: params.value ? `${viewer.color}10` : 'transparent',
+              transition: 'background-color 0.2s ease'
+            }),
+            cellRenderer: (params: { data: { id: string; ratings: any[]; }; }) => {
+              const rating = params.data.ratings.find((r: { viewer: { id: number; }; }) => 
+                r.viewer.id === viewer.id
               );
               
+              if (rating) {
+                return (
+                  <div className="flex items-center gap-2">
+                    {isStarRatingEnabled ? (
+                      <div className="flex items-center justify-center w-full">
+                        {getStarRating(rating.score)}
+                      </div>
+                    ) : (
+                      <EditableRatingCell
+                        value={rating.score}
+                        ratingId={rating.id}
+                        isEditable={(viewer.isCurrentUser || isAdmin)}
+                        onUpdate={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
+                      />
+                    )}
+                  </div>
+                );
+              }
+
               return (
-                <EditableRatingCell
-                  value={rating?.score ?? null}
-                  ratingId={rating?.id ?? ''}
-                  isEditable={(rating?.viewer?.isCurrentUser || isAdmin) ?? false}
-                  onUpdate={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
-                />
+                <></>
+                // <AddRatingCell
+                //   movieId={Number(params.data.id)}
+                //   onAdd={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
+                //   viewerId={viewer.id}
+                //   disabled={!viewer.isCurrentUser && !isAdmin}
+                // />
               );
             }
           });
         });
       }
       return viewerColumns;
-    }, [rowData])
+    }, [rowData, isAdmin, isHeatmapEnabled, isStarRatingEnabled])
   ];
 
   const defaultColDef: ColDef = {
@@ -157,17 +226,41 @@ const TheList = ({ tableData, isCurrentViewer, isAdmin }: TheListProps) => {
   };
 
   return (
-    <div className="ag-theme-quartz-dark w-full h-full custom-grid">
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={colDefs}
-        defaultColDef={defaultColDef}
-        components={{
-          editableRatingCell: EditableRatingCell
-        }}
-        domLayout="autoHeight"
-        enableCellTextSelection={true}
-      />
+    <div className="flex flex-col w-full h-full">
+      <div className="mb-4 flex justify-end gap-2 px-4">
+        <button
+          onClick={() => setIsHeatmapEnabled(!isHeatmapEnabled)}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            isHeatmapEnabled 
+              ? 'bg-blue-600 hover:bg-blue-700' 
+              : 'bg-gray-700 hover:bg-gray-600'
+          } text-white`}
+        >
+          {isHeatmapEnabled ? 'Show User Colors' : 'Show Heatmap'}
+        </button>
+        <button
+          onClick={() => setIsStarRatingEnabled(!isStarRatingEnabled)}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            isStarRatingEnabled 
+              ? 'bg-blue-600 hover:bg-blue-700' 
+              : 'bg-gray-700 hover:bg-gray-600'
+          } text-white`}
+        >
+          {isStarRatingEnabled ? 'Show Decimal' : 'Show Stars'}
+        </button>
+      </div>
+      <div className="ag-theme-quartz-dark w-full h-full custom-grid">
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={colDefs}
+          defaultColDef={defaultColDef}
+          components={{
+            editableRatingCell: EditableRatingCell
+          }}
+          domLayout="autoHeight"
+          enableCellTextSelection={true}
+        />
+      </div>
     </div>
   );
 };

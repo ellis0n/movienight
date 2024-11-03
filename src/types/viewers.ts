@@ -7,6 +7,9 @@ export interface Rating {
   movieTitle: string;
   date: Date | null;
   clerkId: string;
+  year?: string;
+  runtime?: string;
+  poster?: string;
 }
 
 export interface Viewer {
@@ -31,11 +34,21 @@ export interface Viewer {
 }
 
 export interface ViewerResponse {
-  data: {
-    data: Viewer;
-    error: null;
-  } | {
-    data: null;
-    error: string;
-  }
+  viewer: {
+    id: number;
+    _id: string;
+    name: string;
+    clerkId: string;
+    discordId?: string;
+    discordUsername?: string;
+    color: string;
+    avatar?: string;
+    isAdmin: boolean;
+    bio?: string;
+    ratings: any[];
+    pickedList: any[];
+    isCurrentViewer: boolean;
+  } | null;
+  isAdmin: boolean;
+  error: string | null;
 }

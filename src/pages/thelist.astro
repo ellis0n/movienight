@@ -5,15 +5,13 @@ import { TheList } from "@components/Tables/TheList";
 
 const auth = Astro.locals.auth();
 const clerkId = auth?.userId;
-
-const { data: isAdmin } = auth.userId
-  ? await Astro.callAction(actions.viewers.checkAdmin, {
-      clerkId: auth?.userId ?? "",
-    })
-  : { data: false };
+const { data: user } = await Astro.callAction(actions.auth.getUser, {
+  clerkId: auth?.userId ?? "",
+});
+const isAdmin = user?.viewer?.isAdmin ?? false;
 
 const result = await Astro.callAction(actions.util.getTheList, {
-  currentUserId: clerkId ?? undefined,
+  clerkId: auth?.userId ?? "",
 });
 ---
 
@@ -21,7 +19,6 @@ const result = await Astro.callAction(actions.util.getTheList, {
   <TheList
     client:only="react"
     tableData={result?.data?.tableData ?? []}
-    isCurrentViewer={!!auth?.userId}
-    isAdmin={isAdmin ?? false}
+    isAdmin={isAdmin}
   />
 </Layout>
