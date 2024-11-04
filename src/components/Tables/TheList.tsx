@@ -21,7 +21,6 @@ const getHeatmapColor = (score: number) => {
   
   const numScore = Number(score);
   if (isNaN(numScore)) {
-    console.log('Invalid score:', score);
     return 'transparent';
   }
   
@@ -45,15 +44,33 @@ const getHeatmapColor = (score: number) => {
     averageRating: calculateAverageRating(movie.ratings)
   })));
 
-  const handleRatingUpdate = (movieId: string, viewerName: string, newScore: number) => {
+  const handleRatingUpdate = (movieId: string, viewerName: string, newScore: number, ratingId?: number) => {
     setRowData(prevData => 
       prevData.map(movie => {
         if (movie.id === movieId) {
-          const updatedRatings = movie.ratings.map((r: any) => 
-            r.viewer.name === viewerName 
-              ? { ...r, score: newScore }
-              : r
-          );
+          let updatedRatings;
+          const viewer = movie.viewers.find((v: any) => v.name === viewerName);
+          const existingRating = movie.ratings.find((r: any) => r.viewer.name === viewerName);
+          
+          if (!existingRating) {
+            // Add new rating
+            updatedRatings = [...movie.ratings, {
+              id: ratingId,
+              score: newScore,
+              viewer: {
+                name: viewerName,
+                id: viewer.id
+              }
+            }];
+          } else {
+            // Update existing rating
+            updatedRatings = movie.ratings.map((r: any) => 
+              r.viewer.name === viewerName 
+                ? { ...r, score: newScore }
+                : r
+            );
+          }
+
           return {
             ...movie,
             ratings: updatedRatings,
@@ -68,11 +85,9 @@ const getHeatmapColor = (score: number) => {
   const getStarRating = (score: number) => {
     if (!score && score !== 0) return '';
     
-    // Simple division by 2 to convert 0-10 to 0-5
     const starScore = score / 2;
-    // Round to nearest 0.5 to handle decimal scores properly
     const fullStars = Math.floor(starScore);
-    const hasHalfStar = (starScore % 1) >= 0.5;
+    const hasHalfStar = starScore - fullStars >= 0.5;
     
     return (
       <div className="star-rating">
@@ -179,37 +194,29 @@ const getHeatmapColor = (score: number) => {
               transition: 'background-color 0.2s ease'
             }),
             cellRenderer: (params: { data: { id: string; ratings: any[]; }; }) => {
-              const rating = params.data.ratings.find((r: { viewer: { id: number; }; }) => 
-                r.viewer.id === viewer.id
-              );
-              
-              if (rating) {
-                return (
-                  <div className="flex items-center gap-2">
-                    {isStarRatingEnabled ? (
-                      <div className="flex items-center justify-center w-full">
-                        {getStarRating(rating.score)}
-                      </div>
-                    ) : (
-                      <EditableRatingCell
-                        value={rating.score}
-                        ratingId={rating.id}
-                        isEditable={(viewer.isCurrentUser || isAdmin)}
-                        onUpdate={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
-                      />
-                    )}
-                  </div>
-                );
-              }
+              const rating = params.data.ratings.find((r: { viewer: { id: number; }; score: number }) => {
+                return r.viewer.id === viewer.id && r.score != null;
+              });
 
+              console.log(rating);
+              
               return (
-                <></>
-                // <AddRatingCell
-                //   movieId={Number(params.data.id)}
-                //   onAdd={(newValue) => handleRatingUpdate(params.data.id, viewer.name, newValue)}
-                //   viewerId={viewer.id}
-                //   disabled={!viewer.isCurrentUser && !isAdmin}
-                // />
+                <div className="flex items-center gap-2">
+                  {isStarRatingEnabled ? (
+                    <div className="flex items-center justify-center w-full">
+                      {rating ? getStarRating(rating.score) : '-'}
+                    </div>
+                  ) : (
+                    <EditableRatingCell
+                      value={rating ? rating.score : null}
+                      ratingId={rating?.id}
+                      isEditable={(viewer.isCurrentUser || isAdmin)}
+                      onUpdate={(newValue, newRatingId) => handleRatingUpdate(params.data.id, viewer.name, newValue, newRatingId)}
+                      movieId={Number(params.data.id)}
+                      viewerId={viewer.id}
+                    />
+                  )}
+                </div>
               );
             }
           });
@@ -228,7 +235,7 @@ const getHeatmapColor = (score: number) => {
   return (
     <div className="flex flex-col w-full h-full">
       <div className="mb-4 flex justify-end gap-2 px-4">
-        <button
+        {/* <button
           onClick={() => setIsHeatmapEnabled(!isHeatmapEnabled)}
           className={`px-4 py-2 rounded-md transition-colors ${
             isHeatmapEnabled 
@@ -237,10 +244,10 @@ const getHeatmapColor = (score: number) => {
           } text-white`}
         >
           {isHeatmapEnabled ? 'Show User Colors' : 'Show Heatmap'}
-        </button>
+        </button> */}
         <button
           onClick={() => setIsStarRatingEnabled(!isStarRatingEnabled)}
-          className={`px-4 py-2 rounded-md transition-colors ${
+          className={`px-4 py-2 rounded-md transition-colors  ${
             isStarRatingEnabled 
               ? 'bg-blue-600 hover:bg-blue-700' 
               : 'bg-gray-700 hover:bg-gray-600'

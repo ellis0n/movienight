@@ -19,12 +19,19 @@ export const create = {
                         viewerId,
                         score,
                     })
+                    .returning()
                     .run();
 
                 return {
                     message: 'Rating created successfully',
                     success: true,
-                    data: newRating.rows[0]
+                    data: {
+                        id: newRating.rows[0].id,
+                        score,
+                        viewer: {
+                            id: viewerId
+                        }
+                    }
                 };
             } catch (error) {
                 console.error('Error creating rating:', error);
@@ -33,6 +40,6 @@ export const create = {
                     success: false
                 };
             }
-            },
-        }),
+        },
+    }),
 };

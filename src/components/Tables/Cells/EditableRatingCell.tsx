@@ -1,77 +1,71 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { actions } from 'astro:actions';
+import RatingInput from './RatingInput';
 
 interface EditableRatingCellProps {
     value: number | null;
-    ratingId: number;
+    ratingId?: number;
+    movieId: number;
+    viewerId: number;
     isEditable: boolean;
-    onUpdate: (newValue: number) => void;
+    onUpdate: (newValue: number, ratingId?: number) => void;
 }
 
 const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
     value,
     ratingId,
+    movieId,
+    viewerId,
     isEditable,
     onUpdate
 }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [currentValue, setCurrentValue] = useState<string>(value?.toString() ?? '');
-    const inputRef = useRef<HTMLInputElement>(null);
+    const [currentRatingId, setCurrentRatingId] = useState(ratingId);
 
-    useEffect(() => {
-        if (isEditing && inputRef.current) {
-            inputRef.current.focus();
-            inputRef.current.select();
-        }
-    }, [isEditing]);
+    console.log("isEditable", isEditable);
 
-    useEffect(() => {
-        setCurrentValue(value?.toString() ?? '');
-    }, [value]);
+    console.log('EditableRatingCell props:', { value, ratingId, isEditable });
 
-    const handleCancel = () => {
-        setCurrentValue(value?.toString() ?? '');
-        setIsEditing(false);
+    const handleClick = () => {
+        console.log('Cell clicked, current value:', value);
+        console.log('Current ratingId:', ratingId);
+        setIsEditing(true);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            handleCancel();
-        }
-    };
+    const handleSubmit = async (newValue: number) => {
+        try {
+            const formData = new FormData();
+            formData.append('score', newValue.toString());
 
-    const handleSubmit = async (e?: React.FormEvent) => {
-        e?.preventDefault();
-        const numValue = Number(currentValue);
-        
-        if (!currentValue || isNaN(numValue)) {
-            handleCancel();
-            return;
-        }
-
-        if (numValue === value) {
-            setIsEditing(false);
-            return;
-        }
-
-        if (numValue >= 0 && numValue <= 10) {
-            try {
-                const formData = new FormData();
-                formData.append('score', numValue.toString());
-                formData.append('id', ratingId.toString());
-                onUpdate(numValue);
-                const response = await actions.ratings.updateScore(formData);
-                
-                if (response?.data?.success === false) {
-                    onUpdate(value!);
-                    console.error('Failed to update rating:', response?.data?.error);
+            // Create new rating
+            if (value === null && movieId && viewerId) {
+                formData.append('movieId', movieId.toString());
+                formData.append('viewerId', viewerId.toString());
+                const { data } = await actions.ratings.createRating(formData);
+                if (data?.success && data.data?.id) {
+                    setCurrentRatingId(Number(data.data.id));
+                    onUpdate(newValue, Number(data.data.id));
+                } else {
+                    console.error('Failed to create rating:', data?.error);
                 }
-                setIsEditing(false);
-            } catch (error) {
-                onUpdate(value!);
-                console.error('Error updating rating:', error);
-                setIsEditing(false);
+
+            // Update existing rating
+            } else if (currentRatingId) {
+                formData.append('id', currentRatingId.toString());
+                const { data } = await actions.ratings.updateScore(formData);
+
+                if (data?.success) {
+                    onUpdate(newValue, currentRatingId);
+                } else {
+                    onUpdate(value!, currentRatingId);
+                    console.error('Failed to update rating:', data?.error);
+                }
             }
+            setIsEditing(false);
+        } catch (error) {
+            if (value !== null) onUpdate(value, currentRatingId);
+            console.error('Error handling rating:', error);
+            setIsEditing(false);
         }
     };
 
@@ -81,31 +75,32 @@ const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
 
     if (isEditing) {
         return (
-            <form onSubmit={handleSubmit} className="flex justify-center">
-                <input
-                    ref={inputRef}
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.1"
-                    required
-                    placeholder={value?.toString() ?? '-'}
-                    value={currentValue}
-                    onChange={(e) => setCurrentValue(e.target.value)}
-                    onBlur={handleSubmit}
-                    onKeyDown={handleKeyDown}
-                    className="w-12 px-1 py-0.5 text-sm text-center bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
-                />
-            </form>
+            <RatingInput
+                initialValue={value ?? 5}
+                onSubmit={handleSubmit}
+                onCancel={() => setIsEditing(false)}
+                autoFocus
+            />
+        );
+    }
+
+    if (value === null) {
+        return (
+            <button
+                onClick={handleClick}
+                className="w-full h-full text-center text-gray-400 hover:text-white transition-colors"
+            >
+                +
+            </button>
         );
     }
 
     return (
         <button 
-            onClick={() => setIsEditing(true)}
+            onClick={handleClick}
             className="block w-full text-center text-blue-400 hover:text-blue-300"
         >
-            {value ?? '-'}
+            {value}
         </button>
     );
 };

@@ -1,48 +1,39 @@
 import React, { useState } from 'react';
 import RatingInput from './RatingInput';
+import { actions } from 'astro:actions';
 
 interface AddRatingCellProps {
   movieId: number;
   viewerId: number;
   onAdd: (newValue: number) => void;
-  disabled?: boolean;
 }
 
 const AddRatingCell: React.FC<AddRatingCellProps> = ({
   movieId,
   viewerId,
   onAdd,
-  disabled = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleAdd = async (value: number) => {
     try {
-      const response = await fetch('/api/ratings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          movieId,
-          viewerId,
-          score: value
-        })
-      });
+      const formData = new FormData();
+      formData.append('movieId', movieId.toString());
+      formData.append('viewerId', viewerId.toString());
+      formData.append('score', value.toString());
 
-      if (!response.ok) throw new Error('Failed to add rating');
-      
-      onAdd(value);
-      setIsEditing(false);
+      const response = await actions.ratings.createRating(formData);
+
+      if (response?.data?.success) {
+        onAdd(value);
+        setIsEditing(false);
+      } else {
+        console.error('Failed to add rating:', response?.data?.error);
+      }
     } catch (error) {
       console.error('Error adding rating:', error);
-      // Optionally add error handling UI
     }
   };
-
-  if (disabled) {
-    return <span className="text-gray-500">-</span>;
-  }
 
   if (isEditing) {
     return (

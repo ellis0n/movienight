@@ -13,28 +13,31 @@ const RatingInput: React.FC<RatingInputProps> = ({
   onCancel,
   autoFocus = false
 }) => {
-  const [value, setValue] = React.useState<number | null>(() => {
-    if (initialValue === null) return 5;
-    return initialValue;
+  const [value, setValue] = React.useState<string>(() => {
+    if (initialValue === null) return '';
+    return initialValue.toString();
   });
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
+      inputRef.current.select();
     }
   }, [autoFocus]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (value !== null && value >= 0 && value <= 10) {
-      onSubmit(value);
+    const numValue = parseFloat(parseFloat(value).toFixed(2));
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 10) {
+      onSubmit(numValue);
     }
   };
 
   const handleBlur = () => {
-    if (value !== null && value >= 0 && value <= 10) {
-      handleSubmit();
+    const numValue = parseFloat(parseFloat(value).toFixed(2));
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 10) {
+      onSubmit(numValue);
     } else {
       onCancel();
     }
@@ -47,10 +50,10 @@ const RatingInput: React.FC<RatingInputProps> = ({
         type="number"
         min="0"
         max="10"
-        step="0.1"
+        step="0.01"
         required
-        value={value ?? ''} 
-        onChange={(e) => setValue(Number(e.target.value))}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         onBlur={handleBlur}
         className="w-12 px-1 py-0.5 text-sm text-center bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
       />
