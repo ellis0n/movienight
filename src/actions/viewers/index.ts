@@ -77,40 +77,47 @@ export const viewers = {
         },
     }),
 
-    //TODO: Returning type errors, no viewers found
-    getAllViewersWithRatings: defineAction({
-        input: z.object({
-            sort: z.string().optional(),
-        }),
-        handler: async ({sort}) => {
+    getAllViewersWithRatingsCount: defineAction({
+        handler: async () => {
             try {
                 const getAllViewers = await db
                     .select()
                     .from(ViewersDB)
                     .run();
+
                 const { rows } = getAllViewers;
-                const viewersWithRatings = await Promise.all(
+                const viewersWithRatingCount = await Promise.all(
                     rows.map(async (viewer) => {
                         const ratings = await db
                             .select()
                             .from(RatingsDB)
                             .where(eq(RatingsDB.viewerId, Number(viewer.id)))
                             .run();
-                        return { ...viewer, ratings: ratings.rows };
+                        return {
+                            id: Number(viewer.id),
+                            _id: String(viewer._id),
+                            name: String(viewer.name),
+                            clerkId: viewer.clerkId ? String(viewer.clerkId) : null,
+                            discordId: viewer.discordId ? String(viewer.discordId) : undefined,
+                            discordUsername: viewer.discordUsername ? String(viewer.discordUsername) : undefined,
+                            color: String(viewer.color),
+                            avatar: viewer.avatar ? String(viewer.avatar) : undefined,
+                            isAdmin: Boolean(viewer.isAdmin),
+                            bio: viewer.bio ? String(viewer.bio) : undefined,
+                            totalRatings: ratings.rows.length
+                        };
                     })
                 );
-                // sort by total ratings descending
-                if (sort === 'TOTAL_RATINGS_DESC') {
-                    viewersWithRatings.sort((a, b) => b.ratings.length - a.ratings.length);
-                }
-                return viewersWithRatings;
-
-                
+                viewersWithRatingCount.sort((a, b) => b.totalRatings - a.totalRatings);
+                return viewersWithRatingCount;
             } catch (error) {
                 console.error('Error fetching viewers:', error);
+                return [];
             }
         },
     }),
+
+
 
     getViewerWithRatingsAndMovies: defineAction({
         input: z.object({

@@ -108,15 +108,13 @@ export const movies = {
                     .innerJoin(ViewersDB, eq(RatingsDB.viewerId, ViewersDB.id))
                     .run();
                 
-                    
-                    
-                const ratingsData = ratingsQuery.rows;
+                // Get all viewers regardless of ratings
                 const viewers = await db
                     .select()
                     .from(ViewersDB)
-                    .where(inArray(ViewersDB.id, ratingsData.map(rating => Number(rating.viewerId))))
-                    .run(); 
-                
+                    .run();
+                    
+                const ratingsData = ratingsQuery.rows;
                 const mappedRatings = ratingsData.map(rating => ({
                     id: Number(rating.id),
                     movieId: Number(rating.movieId),

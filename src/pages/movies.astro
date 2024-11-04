@@ -2,9 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { Image } from "astro:assets";
 import { actions } from "astro:actions";
-import MoviesTable from "@components/Tables/MoviesTable";
 import placeholder from "../assets/placeholdermovie.png";
-import { User } from "@clerk/astro/server";
 
 const auth = Astro.locals.auth();
 const { data: user } = await Astro.callAction(actions.auth.getUser, {
