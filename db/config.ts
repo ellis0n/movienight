@@ -7,6 +7,7 @@ const MoviesDB = defineTable({
     title: column.text(),
     date: column.date(),
     pickedBy: column.number({ references: () => ViewersDB.columns.id }),
+    omdb: column.json({ optional: true }),
   }
 });
 

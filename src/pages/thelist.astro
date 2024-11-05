@@ -10,15 +10,21 @@ const { data: user } = await Astro.callAction(actions.auth.getUser, {
 });
 const isAdmin = user?.viewer?.isAdmin ?? false;
 
-const result = await Astro.callAction(actions.util.getTheList, {
+const { data, error } = await Astro.callAction(actions.util.getTheList, {
   clerkId: auth?.userId ?? "",
 });
+
+if (error) {
+  console.error(error);
+}
+
+data;
 ---
 
 <Layout title="The List">
   <TheList
     client:only="react"
-    tableData={result?.data?.tableData ?? []}
+    tableData={data?.tableData ?? []}
     isAdmin={isAdmin}
   />
 </Layout>

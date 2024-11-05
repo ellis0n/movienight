@@ -1,6 +1,26 @@
 import { v4 as uuidv4 } from 'uuid';
 
+export const fetchOmdbData = async (title: string) => {
+  try {
+    let searchTitle = title.replace(/, The$/i, '');
+    if (searchTitle !== title) {
+      searchTitle = 'The ' + searchTitle;
+    }
 
+    const url = `https://www.omdbapi.com/?t=${encodeURIComponent(searchTitle)}&y=&plot=short&apikey=${import.meta.env.PUBLIC_OMDB_API_KEY}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.Response === "True") {
+      return data;
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error fetching OMDB data for ${title}:`, error);
+    return null;
+  }
+};
 
 export const moviesData = [
   {
@@ -8,7 +28,8 @@ export const moviesData = [
     id: 1,
     title: "Peanut Butter Falcon",
     date: new Date("2024-03-19"),
-    pickedBy: 2
+    pickedBy: 2,
+    
   },
   { _id: uuidv4(), id: 2, title: "Ronin", date: new Date("2024-03-26"), pickedBy: 3},
   { _id: uuidv4(), id: 3, title: "The Mist", date: new Date("2024-04-02"), pickedBy: 1},
@@ -41,7 +62,7 @@ export const moviesData = [
   { _id: uuidv4(), id: 30, title: "There Will Be Blood", date: new Date("2024-10-15"), pickedBy: 2},
   { _id: uuidv4(), id: 31, title: "Ghost in the Shell", date: new Date("2024-10-22"), pickedBy: 3 },
   { _id: uuidv4(), id: 32, title: "Tucker And Dale vs Evil", date: new Date("2024-10-29"), pickedBy:  13},
-];
+]
 
 export const ratingsData = [
   { _id: uuidv4(), id:   1, movieId: 1, viewerId: 1, score: 6.5},

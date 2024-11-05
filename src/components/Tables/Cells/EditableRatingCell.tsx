@@ -22,13 +22,7 @@ const EditableRatingCell: React.FC<EditableRatingCellProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [currentRatingId, setCurrentRatingId] = useState(ratingId);
 
-    console.log("isEditable", isEditable);
-
-    console.log('EditableRatingCell props:', { value, ratingId, isEditable });
-
     const handleClick = () => {
-        console.log('Cell clicked, current value:', value);
-        console.log('Current ratingId:', ratingId);
         setIsEditing(true);
     };
 

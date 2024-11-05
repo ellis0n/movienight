@@ -15,7 +15,6 @@ const getMovies = await Astro.callAction(actions.movies.getAllMovies, {
 });
 
 const { data: movies, error } = getMovies;
-
 if (error || !movies) {
   console.error("Error fetching movies:", error);
 }

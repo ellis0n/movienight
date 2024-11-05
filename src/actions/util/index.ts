@@ -37,36 +37,29 @@ export const util = {
                     return acc;
                 }, new Map());
 
-                // Fetch OMDB data for each movie
-                const moviesWithPosters = await Promise.all(movies.rows.map(async (movie) => {
+                const parseJson = (json: string) => {
                     try {
-                        const response = await fetch(`${OMDB_URL}${import.meta.env.PUBLIC_OMDB_API_KEY}&t=${encodeURIComponent(movie.title?.toString() ?? '')}`);
-                        const omdbData = await response.json();
-                        return {
-                            id: movie.id,
-                            title: movie.title,
-                            pickedBy: movie.pickedBy,
-                            year: omdbData.Year,
-                            runtime: omdbData.Runtime,
-                            poster: omdbData.Response === 'True' ? omdbData.Poster : null,
-                            date: movie.date
-                        };
+                        return JSON.parse(json);
                     } catch (error) {
-                        console.error(`Error fetching OMDB data for ${movie.title}:`, error);
-                        return movie;
+                        return null;
                     }
-                }));
-                const tableData = moviesWithPosters.map((movie) => ({
-                    id: movie.id,
-                    title: movie.title,
-                    pickedBy: movie.pickedBy,
-                    poster: movie.poster,
-                    ratings: ratingsMap.get(movie.id) || [],
-                    viewers: Array.from(viewersMap.values()),
-                    pickedByName: movie.pickedBy ? viewersMap.get(movie.pickedBy)?.name : null,
-                    pickedByColor: movie.pickedBy ? viewersMap.get(movie.pickedBy)?.color : null,
-                    date: movie.date
-                }));
+                }
+
+                const tableData = movies.rows.map((movie) => {
+                   
+
+                    return {
+                        id: movie.id,
+                        title: movie.title,
+                        pickedBy: movie.pickedBy,
+                        poster: movie.omdb ? parseJson(movie.omdb as string)?.Poster : null,
+                        ratings: ratingsMap.get(movie.id) || [],
+                        viewers: Array.from(viewersMap.values()),
+                        pickedByName: movie.pickedBy ? viewersMap.get(movie.pickedBy)?.name : null,
+                        pickedByColor: movie.pickedBy ? viewersMap.get(movie.pickedBy)?.color : null,
+                        date: movie.date
+                    };
+                });
 
                 return { tableData };
             } catch (error) {

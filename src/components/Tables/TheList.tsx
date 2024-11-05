@@ -145,9 +145,17 @@ const getHeatmapColor = (score: number) => {
       },
       tooltipComponent: ImageTooltip,
       tooltipField: 'title',
-      tooltipComponentParams: (params: { data: any; }) => ({
-        data: params.data
-      }),
+      tooltipComponentParams: (params: { data: any; }) => {
+
+        return {
+          data: {
+            title: params.data.title,
+            pickedByName: params.data.pickedByName,
+            pickedByColor: params.data.pickedByColor,
+            poster: params.data.poster,
+          }
+        };
+      },
     },
     {
       headerName: 'Avg',
@@ -198,7 +206,6 @@ const getHeatmapColor = (score: number) => {
                 return r.viewer.id === viewer.id && r.score != null;
               });
 
-              console.log(rating);
               
               return (
                 <div className="flex items-center gap-2">

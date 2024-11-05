@@ -3,13 +3,10 @@ import React from 'react';
 interface ImageTooltipProps {
   data: {
     title: string;
-    poster?: string;
-    color?: string;
     pickedBy?: string;
-    year?: string;
-    runtime?: string;
     pickedByColor?: string;
     pickedByName?: string;
+    poster?: string;
   };
 }
 
@@ -41,14 +38,6 @@ const ImageTooltip: React.FC<ImageTooltipProps> = ({ data }) => {
               </span>
             </div>
           )}
-
-          <div className="text-sm text-gray-400 flex items-center gap-2">
-            {data.year && <span>{data.year}</span>}
-            {data.year && data.runtime && 
-              <span className="w-1 h-1 rounded-full bg-gray-600" />
-            }
-            {data.runtime && <span>{data.runtime}</span>}
-          </div>
         </div>
       </div>
     </div>
