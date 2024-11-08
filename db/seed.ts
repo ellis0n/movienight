@@ -1,7 +1,7 @@
 import { db, MoviesDB, RatingsDB, ViewersDB } from 'astro:db';
-import { moviesData, ratingsData, viewersData, fetchOmdbData } from './data';
-import { omdb } from 'src/actions/omdb';
+import { data } from './data/index.ts';
 
+const { movies, ratings, viewers } = data;
 
 export default async function () {
 
@@ -11,20 +11,12 @@ export default async function () {
 	await db.delete(ViewersDB).run();
 
 	// Viewers first
-	await db.insert(ViewersDB).values(viewersData);
+	await db.insert(ViewersDB).values([...viewers]);
 
-	// Populate OMDB data 
-	// TODO: Add OMDB to seed data and remove. OMDB should be fetched when adding movie to db.
-	const moviesWithOmdb = await Promise.all(moviesData.map(async (movie) => {
-		const omdb = await fetchOmdbData(movie.title);
-		return { ...movie, omdb };
-	}));
+	// Movies next
+	await db.insert(MoviesDB).values([...movies]);
 
-	
-	await db.insert(MoviesDB).values(moviesWithOmdb);
-	
-	await db.insert(RatingsDB).values(ratingsData);
+	// Ratings last
+	await db.insert(RatingsDB).values([...ratings]);
 
 }
-
-

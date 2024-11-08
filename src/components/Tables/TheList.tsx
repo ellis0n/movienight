@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef, ITooltipParams } from 'ag-grid-community';
+import type { ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import ImageTooltip from './ImageTooltip';
 import EditableRatingCell from './Cells/EditableRatingCell';
-import AddRatingCell from './Cells/AddRatingCell';
 
 interface TheListProps {
   tableData: any[];

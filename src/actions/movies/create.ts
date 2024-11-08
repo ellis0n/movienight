@@ -9,8 +9,9 @@ export const create = {
             title: z.string(),
             date: z.string().transform((str) => new Date(str)),
             pickedBy: z.number(),
+            omdb: z.object({})
         }),
-        handler: async ({ title, date, pickedBy }) => {
+        handler: async ({ title, date, pickedBy, omdb }) => {
             try {
                 const allMovies = await db
                     .select()
@@ -41,7 +42,8 @@ export const create = {
                     date: date.toISOString(), 
                     pickedBy, 
                     _id: crypto.randomUUID(), 
-                    id: newId
+                    id: newId,
+                    omdb,
                 };
 
                 await db

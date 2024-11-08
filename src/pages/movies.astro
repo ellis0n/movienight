@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import MovieStepper from "@components/MovieStepper.tsx";
 import { Image } from "astro:assets";
 import { actions } from "astro:actions";
 import placeholder from "../assets/placeholdermovie.png";
@@ -42,105 +43,10 @@ const moviesWithOmdb = await Promise.all(
   <div
     class="container mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-xl"
   >
-    {
-      isAdmin && (
-        <>
-          <div
-            id="modalBackdrop"
-            class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-40"
-          />
-          <dialog
-            id="newMovieDialog"
-            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 rounded-lg p-6 text-white w-full max-w-2xl shadow-xl z-50"
-          >
-            <form
-              action={actions.movies.createMovie}
-              method="post"
-              class="space-y-4"
-            >
-              <h2 class="text-2xl font-bold mb-4">Add New Movie</h2>
-              <div class="space-y-4">
-                <div>
-                  <label for="title" class="block text-sm font-medium mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    class="w-full p-2 rounded bg-gray-700 text-white"
-                  />
-                </div>
-                <div>
-                  <label for="date" class="block text-sm font-medium mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    required
-                    class="w-full p-2 rounded bg-gray-700 text-white"
-                  />
-                </div>
-                <div>
-                  <label for="pickedBy" class="block text-sm font-medium mb-1">
-                    Picked By
-                  </label>
-                  <input
-                    type="number"
-                    id="pickedBy"
-                    name="pickedBy"
-                    required
-                    class="w-full p-2 rounded bg-gray-700 text-white"
-                  />
-                </div>
-              </div>
-              <div class="flex justify-end space-x-4 mt-6">
-                <button
-                  type="button"
-                  id="cancelBtn"
-                  class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
-                >
-                  Add Movie
-                </button>
-              </div>
-            </form>
-          </dialog>
-        </>
-      )
-    }
-
     <div
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
     >
-      {
-        auth && user?.viewer?.isAdmin && (
-          <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
-            <button
-              id="toggleFormBtn"
-              class="w-full h-full text-left"
-              type="button"
-            >
-              <div class="aspect-[2/3] bg-gray-700 flex items-center justify-center">
-                <span class="text-6xl">+</span>
-              </div>
-              <div class="p-4">
-                <h2 class="text-xl font-semibold mb-2">Add New Movie</h2>
-                <p class="text-gray-400">Click to add a new movie</p>
-              </div>
-            </button>
-          </div>
-        )
-      }
-
+      {auth && user?.viewer?.isAdmin && <MovieStepper client:load />}
       {
         moviesWithOmdb.map((movie) => (
           <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">
@@ -169,69 +75,3 @@ const moviesWithOmdb = await Promise.all(
     </div>
   </div>
 </Layout>
-
-<script>
-  import { actions } from "astro:actions";
-  const dialog = document.getElementById("newMovieDialog") as HTMLDialogElement;
-  const backdrop = document.getElementById("modalBackdrop");
-  const toggleBtn = document.getElementById("toggleFormBtn");
-  const cancelBtn = document.getElementById("cancelBtn");
-  const form = document.querySelector("form");
-
-  toggleBtn?.addEventListener("click", () => {
-    dialog?.showModal();
-    backdrop?.classList.remove("hidden");
-  });
-
-  const closeModal = () => {
-    dialog?.close();
-    backdrop?.classList.add("hidden");
-  };
-
-  cancelBtn?.addEventListener("click", closeModal);
-  backdrop?.addEventListener("click", closeModal);
-
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const submitButton = form.querySelector(
-      'button[type="submit"]'
-    ) as HTMLButtonElement;
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "mt-4";
-    form.appendChild(messageDiv);
-
-    try {
-      submitButton.disabled = true;
-      submitButton.textContent = "Adding...";
-
-      const formattedData = {
-        title: formData.get("title") as string,
-        date: formData.get("date") as string,
-        pickedBy: Number(formData.get("pickedBy")),
-      };
-
-      const response = await actions.movies.createMovie(formattedData);
-
-      if (response.data?.success) {
-        messageDiv.textContent = "Movie added successfully";
-        messageDiv.className = "mt-4 text-green-500";
-
-        setTimeout(() => {
-          closeModal();
-          window.location.href = window.location.pathname;
-        }, 1000);
-      } else {
-        messageDiv.textContent = response.data?.error || "Failed to add movie";
-        messageDiv.className = "mt-4 text-red-500";
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      messageDiv.textContent = "Failed to add movie. Please try again.";
-      messageDiv.className = "mt-4 text-red-500";
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Add Movie";
-    }
-  });
-</script>
