@@ -20,6 +20,15 @@ if (error || !movies) {
   console.error("Error fetching movies:", error);
 }
 
+// Fetch users server-side
+const { data: viewers, error: viewersError } = await Astro.callAction(
+  actions.viewers.getAllViewers,
+  {}
+);
+if (viewersError || !viewers) {
+  console.error("Error fetching viewers:", viewersError);
+}
+
 const moviesWithOmdb = await Promise.all(
   (movies ?? []).map(async (movie) => {
     const getOMDBFilm = await Astro.callAction(actions.omdb.getOmdbFilm, {
@@ -46,7 +55,11 @@ const moviesWithOmdb = await Promise.all(
     <div
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
     >
-      {auth && user?.viewer?.isAdmin && <MovieStepper client:load />}
+      {
+        auth && user?.viewer?.isAdmin && (
+          <MovieStepper client:load viewers={viewers ?? []} />
+        )
+      }
       {
         moviesWithOmdb.map((movie) => (
           <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transform hover:scale-105 transition-transform duration-300">

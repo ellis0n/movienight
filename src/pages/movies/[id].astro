@@ -19,6 +19,7 @@ const getMovie = await Astro.callAction(actions.movies.getMovieWithRatings, {
   movieId: movieId,
 });
 const { data: movie, error } = getMovie;
+console.log(movie);
 if (!movie?.data || error) return Astro.redirect("/404");
 
 const { ratings, average, title, date } = movie.data;

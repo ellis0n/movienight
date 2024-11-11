@@ -13,7 +13,7 @@ commands to use after installing:
 
 - `pnpm astro run dev` -> runs the project and seeds local db with values from `db/data.ts`
   - **this is the current version of the ratings list as of 2024/10/12.**
-- `pnpm astro run dev --remote`
+- `pnpm run dev --remote`
   - uses a remote [turso db](https://turso.tech/)
 
 to modify the remote db schema (as populated after running `astro run dev`):

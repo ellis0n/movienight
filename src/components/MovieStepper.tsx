@@ -16,37 +16,73 @@ type OmdbMovie = {
   Poster: string;
 };
 
-const MovieStepper: React.FC = ({}) => {
+type ErrorState = {
+  message: string;
+};
+
+type Viewer = {
+  id: number;
+  name: string;
+};
+
+type MovieStepperProps = {
+  viewers: Viewer[];
+};
+
+const MovieStepper: React.FC<MovieStepperProps> = ({ viewers }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [pickedBy, setPickedBy] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ErrorState | null>(null);
   const [success, setSuccess] = useState("");
   const [verifiedMovie, setVerifiedMovie] = useState<OmdbMovie | null>(null);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [yearInput, setYearInput] = useState("");
+  const [typeInput, setTypeInput] = useState<"movie" | "series" | "episode" | "">("movie");
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+
+  const toggleAccordion = () => {
+    setIsAccordionOpen(!isAccordionOpen);
+  };
 
   const handleVerify = async () => {
     if (!title) return;
 
     setIsLoading(true);
-    setError("");
+    setError(null);
 
     try {
-      const { data, error } = await actions.omdb.getOmdbFilm({ title });
-      if (!error && data) {
-        setVerifiedMovie(data.data);
-        setStep(2);
-      } else {
-        setError("Movie not found. Please check the title.");
+      const { data, error } = await actions.omdb.getOmdbFilm({ 
+        title,
+        year: yearInput,
+        type: typeInput || undefined,
+      });
+      if (error || !data?.data) {
+        setError({ message: "We couldn't find that movie. Try adding a year or checking if it's a TV series." });
+        setShowAdvancedSearch(true);
+        return;
       }
+      setVerifiedMovie(data.data);
       setStep(2);
     } catch (err) {
-      setError("Movie not found. Please check the title.");
+      setError({ message: "Something went wrong. Please try again." });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getViewers = async () => {
+    const { data } = await actions.viewers.getAllViewers();
+    console.log(data);
+    return data;
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    setError(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -54,12 +90,12 @@ const MovieStepper: React.FC = ({}) => {
     if (!verifiedMovie) return;
 
     setIsLoading(true);
-    setError("");
+    setError(null);
 
     try {
       const { data, error } = await actions.movies.createMovie({
         title: verifiedMovie.Title,
-        pickedBy: 1,
+        pickedBy: Number(pickedBy),
         omdb: verifiedMovie,
         date,
       });
@@ -68,12 +104,13 @@ const MovieStepper: React.FC = ({}) => {
         setSuccess("Movie added successfully");
         setTimeout(() => {
           resetState();
-        }, 1000);
+        }, 1500);
       } else {
-        setError("Failed to add movie");
+        setError({ message: "Failed to add movie" });
+        return;
       }
     } catch (err) {
-      setError("Failed to add movie. Please try again.");
+      setError({ message: "Failed to add movie. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -85,11 +122,23 @@ const MovieStepper: React.FC = ({}) => {
     setTitle("");
     setDate("");
     setPickedBy("");
-    setError("");
+    setError(null);
     setSuccess("");
     setVerifiedMovie(null);
     setIsLoading(false);
   };
+
+  const ErrorMessage = ({ error }: { error: ErrorState }) => (
+    <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mt-4 flex items-center justify-between">
+      <p className="text-red-400">{error.message}</p>
+    </div>
+  );
+
+  const SuccessMessage = ({ message }: { message: string }) => (
+    <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4 mt-4">
+      <p className="text-green-400">{message}</p>
+    </div>
+  );
 
   return (
     <>
@@ -126,11 +175,58 @@ const MovieStepper: React.FC = ({}) => {
                       type="text"
                       id="title"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={handleTitleChange}
                       required
                       className="w-full p-2 rounded bg-gray-700 text-white"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={toggleAccordion}
+                    className="w-full text-left p-2 bg-gray-800 rounded hover:bg-gray-700 flex items-center justify-between"
+                  >
+                    <span>Additional Filters</span>
+                    <span className={`transform transition-transform ${isAccordionOpen ? 'rotate-180' : 'rotate-0'}`}>
+                      ▼
+                    </span>
+                  </button>
+                  {isAccordionOpen && (
+                    <div className="space-y-4 mt-2 border-t border-gray-700 pt-4 transition-all duration-300">
+                      <div>
+                        <label
+                          htmlFor="year"
+                          className="block text-sm font-medium mb-1"
+                        >
+                          Year
+                        </label>
+                        <input
+                          type="text"
+                          id="year"
+                          value={yearInput}
+                          onChange={(e) => setYearInput(e.target.value)}
+                          className="w-full p-2 rounded bg-gray-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="type"
+                          className="block text-sm font-medium mb-1"
+                        >
+                          Type
+                        </label>
+                        <select
+                          id="type"
+                          value={typeInput}
+                          onChange={(e) => setTypeInput(e.target.value as "movie" | "series" | "episode")}
+                          className="w-full p-2 rounded bg-gray-700 text-white"
+                        >
+                          <option value="movie">Movie</option>
+                          <option value="series">Series</option>
+                          <option value="episode">Episode</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={handleVerify}
@@ -192,21 +288,27 @@ const MovieStepper: React.FC = ({}) => {
                       >
                         Picked By
                       </label>
-                      <input
-                        type="number"
+                      <select
                         id="pickedBy"
                         value={pickedBy}
                         onChange={(e) => setPickedBy(e.target.value)}
                         required
                         className="w-full p-2 rounded bg-gray-700 text-white"
-                      />
+                      >
+                        <option value="">Select a viewer</option>
+                        {viewers.map((viewer) => (
+                          <option key={viewer.id} value={viewer.id}>
+                            {viewer.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </>
               )}
 
-              {error && <p className="text-red-500">{error}</p>}
-              {success && <p className="text-green-500">{success}</p>}
+              {error && <ErrorMessage error={error} />}
+              {success && <SuccessMessage message={success} />}
 
               <div className="flex justify-end space-x-4 mt-6">
                 <button
